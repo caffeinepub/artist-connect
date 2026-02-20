@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "Online platform for artists featuring job offerings, gigs, bookings, product store, and Stripe payment integration",
+  "projectStateVersion": 13,
+  "summary": "Online platform for artists featuring job offerings, gigs, bookings, product store with music library for selling recordings, and Stripe payment integration",
   "architectural_notes": [
     "Platform targets artist community with multiple revenue streams",
     "Payment processing via Stripe with card payment support required",
-    "Multi-feature marketplace combining jobs, gigs, bookings, and products"
+    "Multi-feature marketplace combining jobs, gigs, bookings, and products",
+    "Music library feature enables artists to upload and sell audio recordings"
   ],
   "known_issues": [],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Warm and creative hero banner showing artistic tools and creative workspace with earthy tones (hero-banner.dim_1920x600.png)\n- Artist profile placeholder illustration with paintbrush and easel in warm colors (artist-placeholder.dim_400x400.png)\n- Product showcase image featuring framed artwork and creative merchandise display (product-showcase.dim_800x600.png)\n- Gig marketplace icon showing handshake and creative collaboration (gig-icon.dim_200x200.png)\n- Booking calendar illustration with artistic scheduling theme (booking-icon.dim_200x200.png)",
   "existing_features": [
     {
       "id": "feature-create-artist-profile-system-where-artists-can-register-create-profiles-with-bio-portfolio-images-skills-and-contact-information",
@@ -74,6 +74,222 @@
         "REQ-8"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-admin-user-management-interface-where-admins-can-view-all-registered-users-artists-and-clients-with-their-profiles-registration-dates-and-activity-status",
+      "title": "Create admin user management interface where admins can view all registered users (artists and clients) with their profiles, registration dates, and activity status",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-controls-in-user-management-interface-to-suspend-activate-users-and-assign-admin-privileges-with-confirmation-dialogs",
+      "title": "Add admin controls in user management interface to suspend/activate users and assign admin privileges with confirmation dialogs",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-site-configuration-interface-where-admins-can-manage-platform-settings-including-site-name-contact-email-featured-content-and-marketplace-rules",
+      "title": "Create site configuration interface where admins can manage platform settings including site name, contact email, featured content, and marketplace rules",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-navigation-link-to-admin-dashboard-in-layout-header-that-is-visible-only-to-authenticated-admin-users",
+      "title": "Add navigation link to admin dashboard in Layout header that is visible only to authenticated admin users",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-adminstoresettingspage-component-at-frontend-src-pages-adminstoresettingspage-tsx-with-authentication-and-admin-permission-checks-following-the-same-pattern-as-adminsiteconfigpage-and-adminusermanagementpage",
+      "title": "Create AdminStoreSettingsPage component at frontend/src/pages/AdminStoreSettingsPage.tsx with authentication and admin permission checks following the same pattern as AdminSiteConfigPage and AdminUserManagementPage",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-ui-form-in-adminstoresettingspage-for-configuring-store-settings-including-product-approval-workflow-toggle-default-product-visibility-options-inventory-tracking-preferences-featured-product-limits-and-product-listing-rules",
+      "title": "Add UI form in AdminStoreSettingsPage for configuring store settings including product approval workflow toggle, default product visibility options, inventory tracking preferences, featured product limits, and product listing rules",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-admin-store-settings-page-at-admin-store-settings-in-app-tsx-router-configuration",
+      "title": "Add route for admin store settings page at /admin/store-settings in App.tsx router configuration",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-store-settings-navigation-link-to-the-admin-dropdown-menu-in-layout-tsx-header-positioned-after-site-settings-that-navigates-to-admin-store-settings",
+      "title": "Add 'Store Settings' navigation link to the admin dropdown menu in Layout.tsx header, positioned after 'Site Settings', that navigates to /admin/store-settings",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-in-usequeries-ts-for-fetching-and-updating-store-configuration-settings-following-the-established-patterns-for-other-configuration-queries",
+      "title": "Create React Query hooks in useQueries.ts for fetching and updating store configuration settings, following the established patterns for other configuration queries",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-bulk-image-upload-interface-in-the-storepage-component-that-allows-users-to-select-and-upload-multiple-images-simultaneously",
+      "title": "Create a bulk image upload interface in the StorePage component that allows users to select and upload multiple images simultaneously",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-frontend-logic-to-process-each-uploaded-image-by-calling-the-backend-product-creation-method-sequentially-or-in-parallel-batches",
+      "title": "Implement frontend logic to process each uploaded image by calling the backend product creation method sequentially or in parallel batches",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-toast-notifications-and-feedback-messages-during-bulk-upload-process-to-inform-users-of-upload-progress-and-completion-status",
+      "title": "Add toast notifications and feedback messages during bulk upload process to inform users of upload progress and completion status",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-validation-to-ensure-uploaded-files-are-valid-image-formats-jpeg-png-gif-webp-and-within-reasonable-size-limits-before-processing",
+      "title": "Add validation to ensure uploaded files are valid image formats (JPEG, PNG, GIF, WebP) and within reasonable size limits before processing",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-adminstripesettingspage-component-at-frontend-src-pages-adminstripesettingspage-tsx-with-authentication-and-admin-permission-checks-following-the-same-pattern-as-adminsiteconfigpage-and-adminstoresettingspage",
+      "title": "Create AdminStripeSettingsPage component at frontend/src/pages/AdminStripeSettingsPage.tsx with authentication and admin permission checks following the same pattern as AdminSiteConfigPage and AdminStoreSettingsPage",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-ui-form-in-adminstripesettingspage-for-configuring-stripe-settings-including-publishable-key-secret-key-masked-input-webhook-secret-webhook-endpoint-url-payment-currency-options-and-test-mode-toggle",
+      "title": "Add UI form in AdminStripeSettingsPage for configuring Stripe settings including publishable key, secret key (masked input), webhook secret, webhook endpoint URL, payment currency options, and test mode toggle",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-admin-stripe-settings-page-at-admin-stripe-settings-in-app-tsx-router-configuration",
+      "title": "Add route for admin Stripe settings page at /admin/stripe-settings in App.tsx router configuration",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-stripe-settings-navigation-link-to-the-admin-dropdown-menu-in-layout-tsx-header-positioned-after-store-settings-that-navigates-to-admin-stripe-settings",
+      "title": "Add 'Stripe Settings' navigation link to the admin dropdown menu in Layout.tsx header, positioned after 'Store Settings', that navigates to /admin/stripe-settings",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-in-usequeries-ts-for-fetching-and-updating-stripe-configuration-settings-following-the-established-patterns-for-other-configuration-queries",
+      "title": "Create React Query hooks in useQueries.ts for fetching and updating Stripe configuration settings, following the established patterns for other configuration queries",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expand-adminstoresettingspage-to-include-item-product-configuration-options-for-pricing-rules-minimum-price-maximum-price-price-increment-restrictions-product-categories-list-management-product-tags-system-featured-product-selection-and-product-status-workflow",
+      "title": "Expand AdminStoreSettingsPage to include item/product configuration options for pricing rules (minimum price, maximum price, price increment restrictions), product categories list management, product tags system, featured product selection, and product status workflow",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-musiclibrarypage-component-at-frontend-src-pages-musiclibrarypage-tsx-that-displays-all-available-music-items-in-a-grid-layout-with-audio-preview-title-artist-name-price-and-add-to-cart-button",
+      "title": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-music-upload-dialog-in-musiclibrarypage-for-authenticated-artists-to-upload-songs-with-fields-for-audio-file-selection-title-price-description-and-category-dropdown",
+      "title": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-music-library-page-at-music-in-app-tsx-router-configuration",
+      "title": "Add route for music library page at /music in App.tsx router configuration",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-music-library-navigation-link-to-layout-tsx-header-that-navigates-to-music-positioned-after-store",
+      "title": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-hooks-in-usequeries-ts-for-music-operations-usegetallmusic-usegetmusicbyid-usecreatemusic-useupdatemusic-and-usedeletemusic-following-established-patterns",
+      "title": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cart-functionality-in-usecart-ts-to-support-music-items-with-type-music-tracking-musicid-title-artist-and-price",
+      "title": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-bulkimageupload-component-to-include-input-fields-for-category-dropdown-subcategory-text-input-price-number-input-and-description-textarea-for-each-uploaded-image",
+      "title": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-bulk-image-upload-logic-in-storepage-to-pass-category-subcategory-price-and-description-metadata-from-bulkimageupload-component-to-the-backend-createproduct-method-for-each-image",
+      "title": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -105,6 +321,126 @@
       "id": "AR-5",
       "summary": "Stripe payment integration with card support",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "User management in admin",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Site configuration options in admin",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement backend user management system with methods to list all users, get user details, update user status (active/suspended), and assign admin roles",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Implement backend site configuration storage and methods to update and retrieve platform settings including site metadata, marketplace rules, and featured content lists",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Create store item settings/configuration interface in admin",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Create backend methods in main.mo to manage store-level configuration including default product settings, inventory management rules, shipping options, tax settings, and product approval workflow",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add bulk image upload feature where each uploaded image automatically creates a new product item",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add backend method to create a product automatically from an uploaded image with default values for title, description, and price",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add Stripe configuration settings in admin (API keys, webhook settings, payment options)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Expand item/product configuration options in admin (pricing rules, categories, tags, etc.)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Create backend storage and methods in main.mo to manage Stripe configuration including publishable key, secret key, webhook secret, webhook endpoint, currency, and test mode flag with get and update operations",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Update backend StoreConfig type in main.mo to include fields for pricing rules (minPrice, maxPrice), product categories array, product tags array, featured product settings, and product status workflow options",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Create music library where artists can upload songs/recordings and sell copies to customers",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Enhance bulk image upload to include category/subcategory, price, and description fields when creating products",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Create a Music data type in backend/main.mo with fields for title (Text), artist (Principal), audioFileBlob (Blob), price (Nat), description (Text), category (Text), uploadDate (Int), and unique ID",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add backend methods in main.mo for music management: createMusic (accepts audio blob, title, price, description, category), getAllMusic (returns all music items), getMusicById (returns single music item), updateMusic (modifies existing music), and deleteMusic (removes music item)",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add subcategory field (Text) to Product data type in backend/main.mo to store product subcategory classification",
+      "reqIds": [
+        "REQ-44"
+      ],
       "status": "pending"
     }
   ],

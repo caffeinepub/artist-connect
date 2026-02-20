@@ -6,14 +6,19 @@ import type {
     Gig,
     Booking,
     Product,
+    Music,
     Service,
     CreateArtistProfileRequest,
     CreateServiceRequest,
     UpdateServiceRequest,
     BookServiceRequest,
     ShoppingItem,
-    StripeConfiguration
+    StripeConfiguration,
+    StoreProductConfig,
+    StripeStoreConfig,
+    PricingRule
 } from '../backend';
+import { UserRole } from '../backend';
 import { ExternalBlob } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
 
@@ -235,7 +240,13 @@ export function useFindBookingsByArtist(artistId: string) {
         queryKey: ['bookings', 'artist', artistId],
         queryFn: async () => {
             if (!actor || !artistId) return [];
-            return actor.findBookingsByArtist(Principal.fromText(artistId));
+            try {
+                const principal = Principal.fromText(artistId);
+                return actor.findBookingsByArtist(principal);
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+                return [];
+            }
         },
         enabled: !!actor && !isFetching && !!artistId
     });
@@ -266,6 +277,7 @@ export function useCreateProduct() {
             description: string;
             price: bigint;
             productImages: ExternalBlob[];
+            subcategory: string;
         }) => {
             if (!actor) throw new Error('Actor not available');
             return actor.createProduct(
@@ -273,11 +285,172 @@ export function useCreateProduct() {
                 product.title,
                 product.description,
                 product.price,
-                product.productImages
+                product.productImages,
+                product.subcategory
             );
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
+        }
+    });
+}
+
+export interface BulkProductResult {
+    productId: string;
+    fileName: string;
+    success: boolean;
+    error?: string;
+}
+
+export interface BulkProductItem {
+    file: File;
+    blob: ExternalBlob;
+    category: string;
+    subcategory: string;
+    price: number;
+    description: string;
+}
+
+export function useBulkCreateProducts() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (items: BulkProductItem[]): Promise<BulkProductResult[]> => {
+            if (!actor) throw new Error('Actor not available');
+
+            const results: BulkProductResult[] = [];
+
+            for (const item of items) {
+                const productId = `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                try {
+                    await actor.createProduct(
+                        productId,
+                        item.file.name.replace(/\.[^/.]+$/, ''),
+                        item.description,
+                        BigInt(Math.round(item.price * 100)),
+                        [item.blob],
+                        item.subcategory
+                    );
+                    results.push({
+                        productId,
+                        fileName: item.file.name,
+                        success: true
+                    });
+                } catch (error) {
+                    results.push({
+                        productId,
+                        fileName: item.file.name,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    });
+                }
+            }
+
+            return results;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+        }
+    });
+}
+
+// Music Queries
+export function useGetAllMusic() {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<Music[]>({
+        queryKey: ['music'],
+        queryFn: async () => {
+            if (!actor) return [];
+            return actor.getAllMusic();
+        },
+        enabled: !!actor && !isFetching
+    });
+}
+
+export function useGetMusicById(musicId: string) {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<Music | null>({
+        queryKey: ['music', musicId],
+        queryFn: async () => {
+            if (!actor || !musicId) return null;
+            return actor.getMusicById(musicId);
+        },
+        enabled: !!actor && !isFetching && !!musicId
+    });
+}
+
+export function useCreateMusic() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (music: {
+            id: string;
+            title: string;
+            audioFileBlob: ExternalBlob;
+            price: bigint;
+            description: string;
+            category: string;
+        }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.createMusic(
+                music.id,
+                music.title,
+                music.audioFileBlob,
+                music.price,
+                music.description,
+                music.category
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['music'] });
+        }
+    });
+}
+
+export function useUpdateMusic() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (music: {
+            id: string;
+            title: string;
+            price: bigint;
+            description: string;
+            category: string;
+        }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.updateMusic(
+                music.id,
+                music.title,
+                music.price,
+                music.description,
+                music.category
+            );
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['music'] });
+            queryClient.invalidateQueries({ queryKey: ['music', variables.id] });
+        }
+    });
+}
+
+export function useDeleteMusic() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.deleteMusic(id);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['music'] });
         }
     });
 }
@@ -304,8 +477,14 @@ export function useGetServicesByArtist(artistId: string) {
         queryKey: ['services', 'artist', artistId],
         queryFn: async () => {
             if (!actor || !artistId) return [];
-            const response = await actor.getServicesByArtist(Principal.fromText(artistId));
-            return response.services;
+            try {
+                const principal = Principal.fromText(artistId);
+                const response = await actor.getServicesByArtist(principal);
+                return response.services;
+            } catch (error) {
+                console.error('Error fetching services:', error);
+                return [];
+            }
         },
         enabled: !!actor && !isFetching && !!artistId
     });
@@ -322,6 +501,51 @@ export function useCreateService() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['services'] });
+        }
+    });
+}
+
+export function useUpdateService() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, request }: { id: bigint; request: UpdateServiceRequest }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.updateService(id, request);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['services'] });
+        }
+    });
+}
+
+export function useDeleteService() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: bigint) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.deleteService({ id });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['services'] });
+        }
+    });
+}
+
+export function useBookService() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (request: BookServiceRequest) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.bookService(request);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['bookings'] });
         }
     });
 }
@@ -355,21 +579,165 @@ export function useSetStripeConfiguration() {
     });
 }
 
+export type CheckoutSession = {
+    id: string;
+    url: string;
+};
+
 export function useCreateCheckoutSession() {
     const { actor } = useActor();
 
     return useMutation({
-        mutationFn: async (items: ShoppingItem[]): Promise<{ id: string; url: string }> => {
+        mutationFn: async (items: ShoppingItem[]): Promise<CheckoutSession> => {
             if (!actor) throw new Error('Actor not available');
             const baseUrl = `${window.location.protocol}//${window.location.host}`;
-            const successUrl = `${baseUrl}/#/payment-success`;
-            const cancelUrl = `${baseUrl}/#/payment-failure`;
+            const successUrl = `${baseUrl}/payment-success`;
+            const cancelUrl = `${baseUrl}/payment-failure`;
             const result = await actor.createCheckoutSession(items, successUrl, cancelUrl);
-            const session = JSON.parse(result) as { id: string; url: string };
+            const session = JSON.parse(result) as CheckoutSession;
             if (!session?.url) {
                 throw new Error('Stripe session missing url');
             }
             return session;
+        }
+    });
+}
+
+// Store Configuration Queries
+export function useGetStoreProductConfig() {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<StoreProductConfig>({
+        queryKey: ['storeProductConfig'],
+        queryFn: async () => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.getStoreProductConfig();
+        },
+        enabled: !!actor && !isFetching
+    });
+}
+
+export function useUpdateStoreProductConfig() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (config: {
+            inventoryThreshold: bigint;
+            freeShippingAmount: bigint;
+            taxRate: bigint;
+            categoryLimit: bigint;
+            returnDays: bigint;
+            pricingRules: PricingRule;
+            productCategories: string[];
+            productTags: string[];
+            featuredProducts: string[];
+            productStatuses: string[];
+        }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.updateStoreProductConfig(
+                config.inventoryThreshold,
+                config.freeShippingAmount,
+                config.taxRate,
+                config.categoryLimit,
+                config.returnDays,
+                config.pricingRules,
+                config.productCategories,
+                config.productTags,
+                config.featuredProducts,
+                config.productStatuses
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['storeProductConfig'] });
+        }
+    });
+}
+
+export function useSetRequireApprovalFor() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (config: { jobs: boolean; products: boolean; gigs: boolean }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.setRequireApprovalFor(config.jobs, config.products, config.gigs);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['storeProductConfig'] });
+        }
+    });
+}
+
+// Stripe Store Configuration Queries
+export function useGetStripeStoreConfig() {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<StripeStoreConfig>({
+        queryKey: ['stripeStoreConfig'],
+        queryFn: async () => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.getStripeStoreConfig();
+        },
+        enabled: !!actor && !isFetching
+    });
+}
+
+export function useSetStripeStoreConfig() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (config: StripeStoreConfig) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.setStripeStoreConfig(config);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['stripeStoreConfig'] });
+            queryClient.invalidateQueries({ queryKey: ['stripeConfigured'] });
+        }
+    });
+}
+
+// Authorization Queries
+export function useGetCallerUserRole() {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<UserRole>({
+        queryKey: ['callerUserRole'],
+        queryFn: async () => {
+            if (!actor) return UserRole.guest;
+            return actor.getCallerUserRole();
+        },
+        enabled: !!actor && !isFetching
+    });
+}
+
+export function useIsCallerAdmin() {
+    const { actor, isFetching } = useActor();
+
+    return useQuery<boolean>({
+        queryKey: ['isCallerAdmin'],
+        queryFn: async () => {
+            if (!actor) return false;
+            return actor.isCallerAdmin();
+        },
+        enabled: !!actor && !isFetching
+    });
+}
+
+export function useAssignUserRole() {
+    const { actor } = useActor();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ user, role }: { user: Principal; role: UserRole }) => {
+            if (!actor) throw new Error('Actor not available');
+            return actor.assignCallerUserRole(user, role);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['callerUserRole'] });
+            queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
         }
     });
 }

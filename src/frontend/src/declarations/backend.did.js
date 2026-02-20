@@ -83,9 +83,20 @@ export const CreateServiceRequest = IDL.Record({
   'price' : IDL.Nat,
 });
 export const DeleteServiceRequest = IDL.Record({ 'id' : IDL.Nat });
+export const Music = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'audioFileBlob' : ExternalBlob,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+  'artist' : IDL.Principal,
+  'price' : IDL.Nat,
+  'uploadDate' : IDL.Int,
+});
 export const Product = IDL.Record({
   'id' : IDL.Text,
   'title' : IDL.Text,
+  'subcategory' : IDL.Text,
   'artistId' : IDL.Principal,
   'productImages' : IDL.Vec(ExternalBlob),
   'description' : IDL.Text,
@@ -124,12 +135,51 @@ export const GetBookingsByCodeResponse = IDL.Record({
 export const GetServicesByArtistResponse = IDL.Record({
   'services' : IDL.Vec(Service),
 });
+export const PricingRule = IDL.Record({
+  'maxPrice' : IDL.Nat,
+  'minPrice' : IDL.Nat,
+});
+export const StoreProductFilter = IDL.Record({
+  'maxPrice' : IDL.Opt(IDL.Nat),
+  'available' : IDL.Opt(IDL.Bool),
+  'category' : IDL.Opt(IDL.Text),
+  'rating' : IDL.Opt(IDL.Nat),
+  'minPrice' : IDL.Opt(IDL.Nat),
+});
+export const StoreProductConfig = IDL.Record({
+  'productCategoryLimit' : IDL.Nat,
+  'lowStockThreshold' : IDL.Nat,
+  'returnPeriodDays' : IDL.Nat,
+  'productCategories' : IDL.Vec(IDL.Text),
+  'freeShippingThreshold' : IDL.Nat,
+  'productTags' : IDL.Vec(IDL.Text),
+  'pricingRules' : PricingRule,
+  'filterOptions' : IDL.Vec(StoreProductFilter),
+  'inventoryTrackingEnabled' : IDL.Bool,
+  'requireApprovalFor' : IDL.Record({
+    'gigs' : IDL.Bool,
+    'jobs' : IDL.Bool,
+    'products' : IDL.Bool,
+  }),
+  'defaultCurrency' : IDL.Text,
+  'featuredProducts' : IDL.Vec(IDL.Text),
+  'productStatuses' : IDL.Vec(IDL.Text),
+  'taxRate' : IDL.Nat,
+});
 export const StripeSessionStatus = IDL.Variant({
   'completed' : IDL.Record({
     'userPrincipal' : IDL.Opt(IDL.Text),
     'response' : IDL.Text,
   }),
   'failed' : IDL.Record({ 'error' : IDL.Text }),
+});
+export const StripeStoreConfig = IDL.Record({
+  'webhookSecret' : IDL.Text,
+  'testMode' : IDL.Bool,
+  'secretKey' : IDL.Text,
+  'currency' : IDL.Text,
+  'publishableKey' : IDL.Text,
+  'webhookEndpoint' : IDL.Text,
 });
 export const SearchServicesByCategoryResponse = IDL.Record({
   'services' : IDL.Vec(Service),
@@ -209,15 +259,23 @@ export const idlService = IDL.Service({
     ),
   'createGig' : IDL.Func([Gig], [], []),
   'createJobOffering' : IDL.Func([JobOffering], [], []),
-  'createProduct' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Vec(ExternalBlob)],
+  'createMusic' : IDL.Func(
+      [IDL.Text, IDL.Text, ExternalBlob, IDL.Nat, IDL.Text, IDL.Text],
       [],
       [],
     ),
+  'createProduct' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Vec(ExternalBlob), IDL.Text],
+      [],
+      [],
+    ),
+  'createProductFromImage' : IDL.Func([IDL.Text, ExternalBlob], [], []),
   'createService' : IDL.Func([CreateServiceRequest], [], []),
   'deleteBooking' : IDL.Func([IDL.Text], [], []),
   'deleteGig' : IDL.Func([IDL.Text], [], []),
   'deleteJobOffering' : IDL.Func([IDL.Text], [], []),
+  'deleteMusic' : IDL.Func([IDL.Text], [], []),
+  'deleteProduct' : IDL.Func([IDL.Text], [], []),
   'deleteService' : IDL.Func([DeleteServiceRequest], [], []),
   'findBookingsByArtist' : IDL.Func(
       [IDL.Principal],
@@ -233,6 +291,8 @@ export const idlService = IDL.Service({
       [IDL.Vec(JobOffering)],
       ['query'],
     ),
+  'findMusicByArtist' : IDL.Func([IDL.Principal], [IDL.Vec(Music)], ['query']),
+  'findMusicByPrice' : IDL.Func([], [IDL.Vec(Music)], ['query']),
   'findProductsByArtist' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(Product)],
@@ -243,6 +303,7 @@ export const idlService = IDL.Service({
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllGigs' : IDL.Func([], [IDL.Vec(Gig)], ['query']),
   'getAllJobOfferings' : IDL.Func([], [IDL.Vec(JobOffering)], ['query']),
+  'getAllMusic' : IDL.Func([], [IDL.Vec(Music)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getAllServices' : IDL.Func([], [GetAllServicesResponse], ['query']),
   'getArtistById' : IDL.Func([IDL.Text], [ArtistProfileResponse], ['query']),
@@ -257,12 +318,15 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getMusicById' : IDL.Func([IDL.Text], [IDL.Opt(Music)], ['query']),
   'getServicesByArtist' : IDL.Func(
       [IDL.Principal],
       [GetServicesByArtistResponse],
       ['query'],
     ),
+  'getStoreProductConfig' : IDL.Func([], [StoreProductConfig], ['query']),
   'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
+  'getStripeStoreConfig' : IDL.Func([], [StripeStoreConfig], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'searchServicesByCategory' : IDL.Func(
@@ -270,7 +334,9 @@ export const idlService = IDL.Service({
       [SearchServicesByCategoryResponse],
       ['query'],
     ),
+  'setRequireApprovalFor' : IDL.Func([IDL.Bool, IDL.Bool, IDL.Bool], [], []),
   'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+  'setStripeStoreConfig' : IDL.Func([StripeStoreConfig], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -279,7 +345,33 @@ export const idlService = IDL.Service({
   'updateBooking' : IDL.Func([Booking], [], []),
   'updateGig' : IDL.Func([Gig], [], []),
   'updateJobOffering' : IDL.Func([JobOffering], [], []),
+  'updateMusic' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'updateProduct' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Vec(ExternalBlob), IDL.Text],
+      [],
+      [],
+    ),
   'updateService' : IDL.Func([IDL.Nat, UpdateServiceRequest], [], []),
+  'updateStoreProductConfig' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Nat,
+        PricingRule,
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+      ],
+      [],
+      [],
+    ),
   'uploadImage' : IDL.Func([ExternalBlob], [], []),
 });
 
@@ -361,9 +453,20 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Nat,
   });
   const DeleteServiceRequest = IDL.Record({ 'id' : IDL.Nat });
+  const Music = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'audioFileBlob' : ExternalBlob,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+    'artist' : IDL.Principal,
+    'price' : IDL.Nat,
+    'uploadDate' : IDL.Int,
+  });
   const Product = IDL.Record({
     'id' : IDL.Text,
     'title' : IDL.Text,
+    'subcategory' : IDL.Text,
     'artistId' : IDL.Principal,
     'productImages' : IDL.Vec(ExternalBlob),
     'description' : IDL.Text,
@@ -400,12 +503,51 @@ export const idlFactory = ({ IDL }) => {
   const GetServicesByArtistResponse = IDL.Record({
     'services' : IDL.Vec(Service),
   });
+  const PricingRule = IDL.Record({
+    'maxPrice' : IDL.Nat,
+    'minPrice' : IDL.Nat,
+  });
+  const StoreProductFilter = IDL.Record({
+    'maxPrice' : IDL.Opt(IDL.Nat),
+    'available' : IDL.Opt(IDL.Bool),
+    'category' : IDL.Opt(IDL.Text),
+    'rating' : IDL.Opt(IDL.Nat),
+    'minPrice' : IDL.Opt(IDL.Nat),
+  });
+  const StoreProductConfig = IDL.Record({
+    'productCategoryLimit' : IDL.Nat,
+    'lowStockThreshold' : IDL.Nat,
+    'returnPeriodDays' : IDL.Nat,
+    'productCategories' : IDL.Vec(IDL.Text),
+    'freeShippingThreshold' : IDL.Nat,
+    'productTags' : IDL.Vec(IDL.Text),
+    'pricingRules' : PricingRule,
+    'filterOptions' : IDL.Vec(StoreProductFilter),
+    'inventoryTrackingEnabled' : IDL.Bool,
+    'requireApprovalFor' : IDL.Record({
+      'gigs' : IDL.Bool,
+      'jobs' : IDL.Bool,
+      'products' : IDL.Bool,
+    }),
+    'defaultCurrency' : IDL.Text,
+    'featuredProducts' : IDL.Vec(IDL.Text),
+    'productStatuses' : IDL.Vec(IDL.Text),
+    'taxRate' : IDL.Nat,
+  });
   const StripeSessionStatus = IDL.Variant({
     'completed' : IDL.Record({
       'userPrincipal' : IDL.Opt(IDL.Text),
       'response' : IDL.Text,
     }),
     'failed' : IDL.Record({ 'error' : IDL.Text }),
+  });
+  const StripeStoreConfig = IDL.Record({
+    'webhookSecret' : IDL.Text,
+    'testMode' : IDL.Bool,
+    'secretKey' : IDL.Text,
+    'currency' : IDL.Text,
+    'publishableKey' : IDL.Text,
+    'webhookEndpoint' : IDL.Text,
   });
   const SearchServicesByCategoryResponse = IDL.Record({
     'services' : IDL.Vec(Service),
@@ -482,15 +624,30 @@ export const idlFactory = ({ IDL }) => {
       ),
     'createGig' : IDL.Func([Gig], [], []),
     'createJobOffering' : IDL.Func([JobOffering], [], []),
-    'createProduct' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Vec(ExternalBlob)],
+    'createMusic' : IDL.Func(
+        [IDL.Text, IDL.Text, ExternalBlob, IDL.Nat, IDL.Text, IDL.Text],
         [],
         [],
       ),
+    'createProduct' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Vec(ExternalBlob),
+          IDL.Text,
+        ],
+        [],
+        [],
+      ),
+    'createProductFromImage' : IDL.Func([IDL.Text, ExternalBlob], [], []),
     'createService' : IDL.Func([CreateServiceRequest], [], []),
     'deleteBooking' : IDL.Func([IDL.Text], [], []),
     'deleteGig' : IDL.Func([IDL.Text], [], []),
     'deleteJobOffering' : IDL.Func([IDL.Text], [], []),
+    'deleteMusic' : IDL.Func([IDL.Text], [], []),
+    'deleteProduct' : IDL.Func([IDL.Text], [], []),
     'deleteService' : IDL.Func([DeleteServiceRequest], [], []),
     'findBookingsByArtist' : IDL.Func(
         [IDL.Principal],
@@ -510,6 +667,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(JobOffering)],
         ['query'],
       ),
+    'findMusicByArtist' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(Music)],
+        ['query'],
+      ),
+    'findMusicByPrice' : IDL.Func([], [IDL.Vec(Music)], ['query']),
     'findProductsByArtist' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(Product)],
@@ -520,6 +683,7 @@ export const idlFactory = ({ IDL }) => {
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllGigs' : IDL.Func([], [IDL.Vec(Gig)], ['query']),
     'getAllJobOfferings' : IDL.Func([], [IDL.Vec(JobOffering)], ['query']),
+    'getAllMusic' : IDL.Func([], [IDL.Vec(Music)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getAllServices' : IDL.Func([], [GetAllServicesResponse], ['query']),
     'getArtistById' : IDL.Func([IDL.Text], [ArtistProfileResponse], ['query']),
@@ -534,12 +698,15 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getMusicById' : IDL.Func([IDL.Text], [IDL.Opt(Music)], ['query']),
     'getServicesByArtist' : IDL.Func(
         [IDL.Principal],
         [GetServicesByArtistResponse],
         ['query'],
       ),
+    'getStoreProductConfig' : IDL.Func([], [StoreProductConfig], ['query']),
     'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
+    'getStripeStoreConfig' : IDL.Func([], [StripeStoreConfig], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'searchServicesByCategory' : IDL.Func(
@@ -547,7 +714,9 @@ export const idlFactory = ({ IDL }) => {
         [SearchServicesByCategoryResponse],
         ['query'],
       ),
+    'setRequireApprovalFor' : IDL.Func([IDL.Bool, IDL.Bool, IDL.Bool], [], []),
     'setStripeConfiguration' : IDL.Func([StripeConfiguration], [], []),
+    'setStripeStoreConfig' : IDL.Func([StripeStoreConfig], [], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],
@@ -556,7 +725,40 @@ export const idlFactory = ({ IDL }) => {
     'updateBooking' : IDL.Func([Booking], [], []),
     'updateGig' : IDL.Func([Gig], [], []),
     'updateJobOffering' : IDL.Func([JobOffering], [], []),
+    'updateMusic' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'updateProduct' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Vec(ExternalBlob),
+          IDL.Text,
+        ],
+        [],
+        [],
+      ),
     'updateService' : IDL.Func([IDL.Nat, UpdateServiceRequest], [], []),
+    'updateStoreProductConfig' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Nat,
+          PricingRule,
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+        ],
+        [],
+        [],
+      ),
     'uploadImage' : IDL.Func([ExternalBlob], [], []),
   });
 };

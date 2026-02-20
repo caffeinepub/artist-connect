@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-artist-profile-system-where-artists-can-register-create-profiles-with-bio-portfolio-images-skills-and-contact-information",
-      "featureTitle": "Create artist profile system where artists can register, create profiles with bio, portfolio images, skills, and contact information",
+      "featureId": "feature-create-musiclibrarypage-component-at-frontend-src-pages-musiclibrarypage-tsx-that-displays-all-available-music-items-in-a-grid-layout-with-audio-preview-title-artist-name-price-and-add-to-cart-button",
+      "featureTitle": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
       "files": [
-        "frontend/src/pages/ArtistProfilePage.tsx",
-        "frontend/src/pages/ArtistsListPage.tsx",
-        "frontend/src/pages/MyProfilePage.tsx"
+        "frontend/src/pages/MusicLibraryPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -21,16 +19,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-36"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-job-offerings-marketplace-where-employers-can-post-job-opportunities-for-artists-with-job-title-description-budget-and-deadline",
-      "featureTitle": "Implement job offerings marketplace where employers can post job opportunities for artists with job title, description, budget, and deadline",
+      "featureId": "feature-add-music-upload-dialog-in-musiclibrarypage-for-authenticated-artists-to-upload-songs-with-fields-for-audio-file-selection-title-price-description-and-category-dropdown",
+      "featureTitle": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
       "files": [
-        "frontend/src/pages/JobOfferingDetailPage.tsx",
-        "frontend/src/pages/JobOfferingsPage.tsx"
+        "frontend/src/pages/MusicLibraryPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -44,16 +41,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-gigs-marketplace-where-artists-can-list-their-services-gigs-with-title-description-pricing-and-delivery-time-and-clients-can-browse-and-purchase-gigs",
-      "featureTitle": "Create gigs marketplace where artists can list their services (gigs) with title, description, pricing, and delivery time, and clients can browse and purchase gigs",
+      "featureId": "feature-add-route-for-music-library-page-at-music-in-app-tsx-router-configuration",
+      "featureTitle": "Add route for music library page at /music in App.tsx router configuration",
       "files": [
-        "frontend/src/pages/GigDetailPage.tsx",
-        "frontend/src/pages/GigsPage.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -67,16 +63,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-38"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-build-booking-system-where-clients-can-book-artist-services-by-selecting-date-time-service-type-and-duration-with-availability-calendar-for-artists",
-      "featureTitle": "Build booking system where clients can book artist services by selecting date, time, service type, and duration, with availability calendar for artists",
+      "featureId": "feature-add-music-library-navigation-link-to-layout-tsx-header-that-navigates-to-music-positioned-after-store",
+      "featureTitle": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
       "files": [
-        "frontend/src/pages/BookServicePage.tsx",
-        "frontend/src/pages/BookingsPage.tsx"
+        "frontend/src/components/Layout.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -90,16 +85,81 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-39"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-product-store-where-artists-can-list-physical-or-digital-products-artwork-prints-merchandise-with-images-descriptions-and-prices-and-customers-can-browse-and-add-items-to-cart",
-      "featureTitle": "Create product store where artists can list physical or digital products (artwork, prints, merchandise) with images, descriptions, and prices, and customers can browse and add items to cart",
+      "featureId": "feature-create-react-query-hooks-in-usequeries-ts-for-music-operations-usegetallmusic-usegetmusicbyid-usecreatemusic-useupdatemusic-and-usedeletemusic-following-established-patterns",
+      "featureTitle": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-cart-functionality-in-usecart-ts-to-support-music-items-with-type-music-tracking-musicid-title-artist-and-price",
+      "featureTitle": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
       "files": [
         "frontend/src/hooks/useCart.ts",
-        "frontend/src/pages/ProductDetailPage.tsx",
+        "frontend/src/pages/CartPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enhance-bulkimageupload-component-to-include-input-fields-for-category-dropdown-subcategory-text-input-price-number-input-and-description-textarea-for-each-uploaded-image",
+      "featureTitle": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
+      "files": [
+        "frontend/src/components/BulkImageUpload.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-42"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-bulk-image-upload-logic-in-storepage-to-pass-category-subcategory-price-and-description-metadata-from-bulkimageupload-component-to-the-backend-createproduct-method-for-each-image",
+      "featureTitle": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
+      "files": [
         "frontend/src/pages/StorePage.tsx"
       ],
       "components": [
@@ -114,81 +174,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-integrate-stripe-payment-processing-to-handle-card-payments-for-gig-purchases-bookings-and-product-store-orders",
-      "featureTitle": "Integrate Stripe payment processing to handle card payments for gig purchases, bookings, and product store orders",
-      "files": [
-        "frontend/src/pages/BookServicePage.tsx",
-        "frontend/src/pages/GigDetailPage.tsx",
-        "frontend/src/pages/PaymentFailurePage.tsx",
-        "frontend/src/pages/PaymentSuccessPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-design-a-cohesive-visual-identity-with-warm-creative-aesthetics-using-earth-tones-and-artistic-typography-that-appeals-to-artists-and-creative-professionals-applying-this-style-consistently-across-all-pages-and-components",
-      "featureTitle": "Design a cohesive visual identity with warm, creative aesthetics using earth tones and artistic typography that appeals to artists and creative professionals, applying this style consistently across all pages and components",
-      "files": [
-        "frontend/src/components/Layout.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-display-generated-hero-banner-artist-profile-placeholder-images-and-product-showcase-images-as-static-assets-in-frontend-public-assets-generated",
-      "featureTitle": "Display generated hero banner, artist profile placeholder images, and product showcase images as static assets in frontend/public/assets/generated",
-      "files": [
-        "frontend/src/pages/BookingsPage.tsx",
-        "frontend/src/pages/GigsPage.tsx",
-        "frontend/src/pages/HomePage.tsx",
-        "frontend/src/pages/StorePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
+        "REQ-43"
       ],
       "confidence": "high"
     }

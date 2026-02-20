@@ -13,14 +13,18 @@ import Principal "mo:core/Principal";
 import OutCall "http-outcalls/outcall";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Nat "mo:core/Nat";
+import Migration "migration";
 
+// Use migration to get the correct types for with clause
+(with migration = Migration.run)
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();
-  
+
   // Include authorization mixin for user profile management
   include MixinAuthorization(accessControlState);
-  
+
   // Include storage mixin
   include MixinStorage();
 
@@ -115,6 +119,7 @@ actor {
     description : Text;
     price : Nat;
     productImages : [Storage.ExternalBlob];
+    subcategory : Text;
   };
 
   let products = Map.empty<Text, Product>();
@@ -122,6 +127,35 @@ actor {
   module Product {
     public func compareByPrice(product1 : Product, product2 : Product) : Order.Order {
       Nat.compare(product1.price, product2.price);
+    };
+  };
+
+  /// Music
+
+  public type Music = {
+    id : Text;
+    title : Text;
+    artist : Principal;
+    audioFileBlob : Storage.ExternalBlob;
+    price : Nat;
+    description : Text;
+    category : Text;
+    uploadDate : Int;
+  };
+
+  let music = Map.empty<Text, Music>();
+
+  module MusicIter {
+    public func compareByUploadDate(music1 : Music, music2 : Music) : Order.Order {
+      if (music1.uploadDate < music2.uploadDate) { #less } else {
+        if (music1.uploadDate > music2.uploadDate) { #greater } else { #equal };
+      };
+    };
+  };
+
+  module MusicIterPrice {
+    public func compareByPrice(music1 : Music, music2 : Music) : Order.Order {
+      Nat.compare(music1.price, music2.price);
     };
   };
 
@@ -164,7 +198,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create artist profiles");
     };
-    
+
     let id = (switch (profiles.get(caller)) {
       case (null) {
         let internal = {
@@ -186,9 +220,9 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add portfolio images");
     };
-    
+
     let artist = switch (profiles.get(caller)) {
-      case (null) { Runtime.trap("Not an artist") };
+      case (null) { Runtime.trap("Artist profile not found") };
       case (?value) { value };
     };
     let newProfile : ArtistProfile = {
@@ -207,12 +241,12 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create job offerings");
     };
-    
+
     // Verify the employer field matches the caller
     if (offering.employer != caller) {
       Runtime.trap("Unauthorized: Cannot create job offering for another user");
     };
-    
+
     jobOfferings.add(offering.id, offering);
   };
 
@@ -220,7 +254,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update job offerings");
     };
-    
+
     // Verify ownership
     switch (jobOfferings.get(offering.id)) {
       case (null) { Runtime.trap("Job offering not found") };
@@ -230,7 +264,7 @@ actor {
         };
       };
     };
-    
+
     jobOfferings.add(offering.id, offering);
   };
 
@@ -238,7 +272,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete job offerings");
     };
-    
+
     // Verify ownership
     switch (jobOfferings.get(id)) {
       case (null) { Runtime.trap("Job offering not found") };
@@ -248,7 +282,7 @@ actor {
         };
       };
     };
-    
+
     jobOfferings.remove(id);
   };
 
@@ -272,12 +306,12 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create gigs");
     };
-    
+
     // Verify the artistId matches the caller
     if (gig.artistId != caller) {
       Runtime.trap("Unauthorized: Cannot create gig for another artist");
     };
-    
+
     gigs.add(gig.id, gig);
   };
 
@@ -285,7 +319,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update gigs");
     };
-    
+
     // Verify ownership
     switch (gigs.get(gig.id)) {
       case (null) { Runtime.trap("Gig not found") };
@@ -295,7 +329,7 @@ actor {
         };
       };
     };
-    
+
     gigs.add(gig.id, gig);
   };
 
@@ -303,7 +337,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete gigs");
     };
-    
+
     // Verify ownership
     switch (gigs.get(id)) {
       case (null) { Runtime.trap("Gig not found") };
@@ -313,7 +347,7 @@ actor {
         };
       };
     };
-    
+
     gigs.remove(id);
   };
 
@@ -337,12 +371,12 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create bookings");
     };
-    
+
     // Verify the clientId matches the caller
     if (booking.clientId != caller) {
       Runtime.trap("Unauthorized: Cannot create booking for another client");
     };
-    
+
     bookings.add(booking.id, booking);
   };
 
@@ -350,7 +384,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update bookings");
     };
-    
+
     // Verify ownership (either client or artist can update)
     switch (bookings.get(booking.id)) {
       case (null) { Runtime.trap("Booking not found") };
@@ -360,7 +394,7 @@ actor {
         };
       };
     };
-    
+
     bookings.add(booking.id, booking);
   };
 
@@ -368,7 +402,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete bookings");
     };
-    
+
     // Verify ownership (either client or artist can delete)
     switch (bookings.get(id)) {
       case (null) { Runtime.trap("Booking not found") };
@@ -378,7 +412,7 @@ actor {
         };
       };
     };
-    
+
     bookings.remove(id);
   };
 
@@ -386,13 +420,13 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view all bookings");
     };
-    
+
     // Filter to only show bookings where caller is involved
     let array = bookings.values().toArray();
     if (AccessControl.isAdmin(accessControlState, caller)) {
       return array;
     };
-    
+
     array.filter(func(booking) {
       booking.clientId == caller or booking.artistId == caller;
     });
@@ -402,7 +436,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view bookings");
     };
-    
+
     let array = bookings.values().toArray();
     let filtered = if (AccessControl.isAdmin(accessControlState, caller)) {
       array;
@@ -428,17 +462,18 @@ actor {
     title : Text,
     description : Text,
     price : Nat,
-    productImages : [Storage.ExternalBlob]
+    productImages : [Storage.ExternalBlob],
+    subcategory : Text
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create products");
     };
-    
+
     let artist = switch (profiles.get(caller)) {
-      case (null) { Runtime.trap("Not an artist") };
+      case (null) { Runtime.trap("Artist profile not found") };
       case (?value) { value };
     };
-    
+
     let product = {
       id;
       artistId = caller;
@@ -446,8 +481,83 @@ actor {
       price;
       description;
       productImages;
+      subcategory;
     };
     products.add(id, product);
+  };
+
+  public shared ({ caller }) func createProductFromImage(productId : Text, image : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create products");
+    };
+
+    ignore switch (profiles.get(caller)) {
+      case (null) { Runtime.trap("Artist profile not found") };
+      case (?_artist) {  };
+    };
+
+    let product = {
+      id = productId;
+      artistId = caller;
+      title = "Default Title";
+      price = 0;
+      description = "Default Description";
+      productImages = [image];
+      subcategory = "Default Subcategory";
+    };
+    products.add(productId, product);
+  };
+
+  public shared ({ caller }) func updateProduct(
+    id : Text,
+    title : Text,
+    description : Text,
+    price : Nat,
+    productImages : [Storage.ExternalBlob],
+    subcategory : Text
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update products");
+    };
+
+    // Verify ownership
+    switch (products.get(id)) {
+      case (null) { Runtime.trap("Product not found") };
+      case (?existing) {
+        if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only update your own products");
+        };
+      };
+    };
+
+    let product = {
+      id;
+      artistId = caller;
+      title;
+      price;
+      description;
+      productImages;
+      subcategory;
+    };
+    products.add(id, product);
+  };
+
+  public shared ({ caller }) func deleteProduct(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete products");
+    };
+
+    // Verify ownership
+    switch (products.get(id)) {
+      case (null) { Runtime.trap("Product not found") };
+      case (?existing) {
+        if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only delete your own products");
+        };
+      };
+    };
+
+    products.remove(id);
   };
 
   public query ({ caller }) func getAllProducts() : async [Product] {
@@ -466,14 +576,289 @@ actor {
     });
   };
 
-  // Stripe Integration
-  var stripeConfiguration : ?Stripe.StripeConfiguration = null;
+  // Music Management
 
-  public query func isStripeConfigured() : async Bool {
-    stripeConfiguration != null;
+  public shared ({ caller }) func createMusic(
+    id : Text,
+    title : Text,
+    audioFileBlob : Storage.ExternalBlob,
+    price : Nat,
+    description : Text,
+    category : Text
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create music");
+    };
+
+    let musicItem : Music = {
+      id;
+      title;
+      artist = caller;
+      audioFileBlob;
+      price;
+      description;
+      category;
+      uploadDate = Time.now();
+    };
+
+    music.add(id, musicItem);
   };
 
+  public query ({ caller }) func getAllMusic() : async [Music] {
+    music.values().toArray();
+  };
+
+  public query ({ caller }) func getMusicById(id : Text) : async ?Music {
+    music.get(id);
+  };
+
+  public shared ({ caller }) func updateMusic(
+    id : Text,
+    newTitle : Text,
+    newPrice : Nat,
+    newDescription : Text,
+    newCategory : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update music");
+    };
+
+    switch (music.get(id)) {
+      case (null) { Runtime.trap("Music item not found") };
+      case (?existingMusic) {
+        // Verify ownership
+        if (existingMusic.artist != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only update your own music");
+        };
+
+        // Update music item with new values
+        let updatedMusic : Music = {
+          id;
+          title = newTitle;
+          artist = existingMusic.artist;
+          audioFileBlob = existingMusic.audioFileBlob;
+          price = newPrice;
+          description = newDescription;
+          category = newCategory;
+          uploadDate = Time.now();
+        };
+        music.add(id, updatedMusic);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteMusic(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete music");
+    };
+
+    // Verify ownership
+    switch (music.get(id)) {
+      case (null) { Runtime.trap("Music item not found") };
+      case (?existingMusic) {
+        if (existingMusic.artist != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only delete your own music");
+        };
+        music.remove(id);
+      };
+    };
+  };
+
+  // Music Queries by Fields
+
+  public query ({ caller }) func findMusicByPrice() : async [Music] {
+    let array = music.values().toArray();
+    array.sort(MusicIterPrice.compareByPrice);
+  };
+
+  public query ({ caller }) func findMusicByArtist(artist : Principal) : async [Music] {
+    let array = music.values().toArray();
+    array.filter(func(musicItem) {
+      musicItem.artist == artist;
+    });
+  };
+
+  // Store Product Configuration
+
+  public type StoreProductFilter = {
+    category : ?Text;
+    minPrice : ?Nat;
+    maxPrice : ?Nat;
+    rating : ?Nat;
+    available : ?Bool;
+  };
+
+  public type PricingRule = {
+    minPrice : Nat;
+    maxPrice : Nat;
+  };
+
+  public type StoreProductConfig = {
+    defaultCurrency : Text;
+    inventoryTrackingEnabled : Bool;
+    lowStockThreshold : Nat;
+    freeShippingThreshold : Nat;
+    taxRate : Nat;
+    requireApprovalFor : {
+      jobs : Bool;
+      products : Bool;
+      gigs : Bool;
+    };
+    productCategoryLimit : Nat;
+    returnPeriodDays : Nat;
+    filterOptions : [StoreProductFilter];
+    pricingRules : PricingRule;
+    productCategories : [Text];
+    productTags : [Text];
+    featuredProducts : [Text];
+    productStatuses : [Text];
+  };
+
+  var storeConfig : StoreProductConfig = {
+    defaultCurrency = "USD";
+    inventoryTrackingEnabled = true;
+    lowStockThreshold = 10;
+    freeShippingThreshold = 5000;
+    taxRate = 7;
+    requireApprovalFor = {
+      jobs = true;
+      products = true;
+      gigs = false;
+    };
+    productCategoryLimit = 10;
+    returnPeriodDays = 30;
+    filterOptions = [];
+    pricingRules = {
+      minPrice = 0;
+      maxPrice = 10000;
+    };
+    productCategories = [];
+    productTags = [];
+    featuredProducts = [];
+    productStatuses = ["draft", "active", "archived"];
+  };
+
+  let defaultPricingRules : PricingRule = {
+    minPrice = 0;
+    maxPrice = 10000;
+  };
+
+  var storeProductConfig : StoreProductConfig = {
+    defaultCurrency = "USD";
+    inventoryTrackingEnabled = true;
+    lowStockThreshold = 10;
+    freeShippingThreshold = 5000;
+    taxRate = 7;
+    requireApprovalFor = {
+      jobs = true;
+      products = true;
+      gigs = false;
+    };
+    productCategoryLimit = 10;
+    returnPeriodDays = 30;
+    filterOptions = [];
+    pricingRules = defaultPricingRules;
+    productCategories = [];
+    productTags = [];
+    featuredProducts = [];
+    productStatuses = [];
+  };
+
+  public query ({ caller }) func getStoreProductConfig() : async StoreProductConfig {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view store configuration");
+    };
+    storeConfig;
+  };
+
+  public shared ({ caller }) func updateStoreProductConfig(
+    inventoryThreshold : Nat,
+    freeShippingAmount : Nat,
+    taxRate : Nat,
+    categoryLimit : Nat,
+    returnDays : Nat,
+    pricingRules : PricingRule,
+    productCategories : [Text],
+    productTags : [Text],
+    featuredProducts : [Text],
+    productStatuses : [Text],
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update store config");
+    };
+
+    storeConfig := {
+      storeConfig with
+      lowStockThreshold = inventoryThreshold;
+      freeShippingThreshold = freeShippingAmount;
+      taxRate;
+      productCategoryLimit = categoryLimit;
+      returnPeriodDays = returnDays;
+      pricingRules;
+      productCategories;
+      productTags;
+      featuredProducts;
+      productStatuses;
+    };
+  };
+
+  public shared ({ caller }) func setRequireApprovalFor(jobs : Bool, products : Bool, gigs : Bool) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update approval settings");
+    };
+
+    storeConfig := {
+      storeConfig with
+      requireApprovalFor = {
+        jobs;
+        products;
+        gigs;
+      };
+    };
+  };
+
+  // Stripe Integration
+  public type StripeStoreConfig = {
+    publishableKey : Text;
+    secretKey : Text;
+    webhookSecret : Text;
+    webhookEndpoint : Text;
+    currency : Text;
+    testMode : Bool;
+  };
+
+  var stripeStoreConfig : ?StripeStoreConfig = null;
+
+  public query ({ caller }) func isStripeConfigured() : async Bool {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can check Stripe configuration status");
+    };
+    stripeStoreConfig != null;
+  };
+
+  public shared ({ caller }) func setStripeStoreConfig(config : StripeStoreConfig) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can configure Stripe");
+    };
+    stripeStoreConfig := ?config;
+  };
+
+  public query ({ caller }) func getStripeStoreConfig() : async StripeStoreConfig {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can get Stripe configuration");
+    };
+    switch (stripeStoreConfig) {
+      case (null) { Runtime.trap("Stripe configuration is missing") };
+      case (?config) { config };
+    };
+  };
+
+  var stripeConfiguration : ?Stripe.StripeConfiguration = null;
+
   public shared ({ caller }) func setStripeConfiguration(config : Stripe.StripeConfiguration) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can configure Stripe");
+    };
     stripeConfiguration := ?config;
   };
 
@@ -589,7 +974,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create services");
     };
-    
+
     let service : Service = {
       id = nextServiceId;
       artistId = caller;
@@ -607,17 +992,17 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update services");
     };
-    
+
     // Verify ownership
     switch (services.get(id)) {
-      case (null) { Runtime.trap("Service with ID " # Nat.toText(id) # " does not exist") };
+      case (null) { Runtime.trap("Service with ID " # id.toText() # " does not exist") };
       case (?existing) {
         if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only update your own services");
         };
       };
     };
-    
+
     let service : Service = {
       id;
       artistId = caller;
@@ -634,17 +1019,17 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete services");
     };
-    
+
     // Verify ownership
     switch (services.get(request.id)) {
-      case (null) { Runtime.trap("Service with ID " # Nat.toText(request.id) # " does not exist") };
+      case (null) { Runtime.trap("Service with ID " # request.id.toText() # " does not exist") };
       case (?existing) {
         if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only delete your own services");
         };
       };
     };
-    
+
     services.remove(request.id);
   };
 
@@ -694,7 +1079,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can book services");
     };
-    
+
     let bookingData : Booking = {
       id = request.artistId.toText();
       artistId = request.artistId;
@@ -717,7 +1102,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view bookings");
     };
-    
+
     let array = extendedBookings.values().toArray();
     let bookings = array.map(func(extendedBooking) {
       extendedBooking.booking;

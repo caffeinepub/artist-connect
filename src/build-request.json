@@ -1,174 +1,225 @@
 {
   "kind": "build_request",
-  "title": "Build artist platform with jobs, gigs, bookings, store, and Stripe payments",
+  "title": "Add music library with song uploads and enhanced bulk image upload with metadata",
   "projectName": "Artist Connect",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Create artist profile system where artists can register, create profiles with bio, portfolio images, skills, and contact information",
-      "target": "both",
+      "id": "REQ-34",
+      "text": "Create a Music data type in backend/main.mo with fields for title (Text), artist (Principal), audioFileBlob (Blob), price (Nat), description (Text), category (Text), uploadDate (Int), and unique ID",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-latest"
         ],
         "quotes": [
-          "Online support for artists"
+          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
         ]
       },
       "acceptanceCriteria": [
-        "Artists can create and edit their profiles",
-        "Profiles display bio, portfolio images, skills, and contact information",
-        "Profiles are publicly viewable"
+        "Music type is defined in backend/main.mo with all required fields",
+        "ID field uses unique identifier generation similar to existing Product and Gig types",
+        "audioFileBlob field stores the uploaded audio file as a Blob"
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Implement job offerings marketplace where employers can post job opportunities for artists with job title, description, budget, and deadline",
-      "target": "both",
+      "id": "REQ-35",
+      "text": "Add backend methods in main.mo for music management: createMusic (accepts audio blob, title, price, description, category), getAllMusic (returns all music items), getMusicById (returns single music item), updateMusic (modifies existing music), and deleteMusic (removes music item)",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-latest"
         ],
         "quotes": [
-          "job offerings"
+          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
         ]
       },
       "acceptanceCriteria": [
-        "Employers can create job postings with title, description, budget, and deadline",
-        "Artists can browse and view all job postings",
-        "Job postings display all relevant details"
+        "createMusic method stores uploaded audio files and metadata",
+        "getAllMusic returns array of all music items with filtering by artist",
+        "getMusicById retrieves a single music item by ID",
+        "updateMusic allows modification of music metadata",
+        "deleteMusic removes music item and associated blob"
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Create gigs marketplace where artists can list their services (gigs) with title, description, pricing, and delivery time, and clients can browse and purchase gigs",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "gigs"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Artists can create gig listings with title, description, pricing, and delivery time",
-        "Clients can browse available gigs",
-        "Clients can view detailed gig information"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Build booking system where clients can book artist services by selecting date, time, service type, and duration, with availability calendar for artists",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "bookings"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Artists can set their availability in a calendar interface",
-        "Clients can select available dates and times to book services",
-        "Bookings include service type and duration",
-        "Artists receive booking notifications"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Create product store where artists can list physical or digital products (artwork, prints, merchandise) with images, descriptions, and prices, and customers can browse and add items to cart",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "product store"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Artists can create product listings with images, descriptions, and prices",
-        "Customers can browse all available products",
-        "Customers can add products to a shopping cart",
-        "Product images are displayed clearly"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Integrate Stripe payment processing to handle card payments for gig purchases, bookings, and product store orders",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "take stripe pqyment with card"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Stripe payment form accepts credit and debit cards",
-        "Payments process successfully for gigs, bookings, and products",
-        "Payment confirmation is displayed to users after successful transactions",
-        "Failed payments show appropriate error messages"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Design a cohesive visual identity with warm, creative aesthetics using earth tones and artistic typography that appeals to artists and creative professionals, applying this style consistently across all pages and components",
+      "id": "REQ-36",
+      "text": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-latest"
+        ],
+        "quotes": [
+          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
         ]
       },
       "acceptanceCriteria": [
-        "All pages follow a consistent color palette with warm, earthy tones",
-        "Typography choices reflect creative and artistic sensibility",
-        "Layout and spacing create an inviting, gallery-like atmosphere",
-        "Visual style is coherent across profile pages, marketplace, bookings, and store"
+        "Page displays music items in a responsive grid",
+        "Each music card shows title, artist, price, and description",
+        "Audio preview player allows listening before purchase",
+        "Add to Cart button adds music item to shopping cart"
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Display generated hero banner, artist profile placeholder images, and product showcase images as static assets in frontend/public/assets/generated",
+      "id": "REQ-37",
+      "text": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-latest"
+        ],
+        "quotes": [
+          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
         ]
       },
       "acceptanceCriteria": [
-        "Hero banner image displays on the main landing page",
-        "Artist profile placeholders are used for profiles without custom images",
-        "Product showcase images are rendered in the store section",
-        "All generated images are served from frontend/public/assets/generated"
+        "Dialog is accessible only to authenticated users",
+        "File input accepts common audio formats (MP3, WAV, FLAC, AAC)",
+        "Form includes required fields for title, price, description, and category",
+        "Upload converts audio file to ExternalBlob format before submission",
+        "Success toast notification appears after successful upload"
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Add route for music library page at /music in App.tsx router configuration",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Route /music renders MusicLibraryPage component",
+        "Route follows existing routing patterns in App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Navigation link appears in main header",
+        "Link is visible to all users (authenticated and guest)",
+        "Link is positioned after Store link in navigation"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All hooks follow React Query patterns used for products and gigs",
+        "Mutation hooks invalidate music queries on success",
+        "Hooks handle loading, error, and success states"
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "sell a copy of the recording to anyone"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Cart state supports music items alongside products and gigs",
+        "Music items display correctly in CartPage with audio icon",
+        "Total calculation includes music item prices"
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "when uploading batch images create or add categorie and subcategorie, price and description"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each image preview shows editable fields for category, subcategory, price, and description",
+        "Category dropdown is populated from backend product categories configuration",
+        "Price field validates numeric input with minimum/maximum from store pricing rules",
+        "Description field supports multi-line text input",
+        "All metadata is submitted when creating products from bulk upload"
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "when uploading batch images create or add categorie and subcategorie, price and description"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Product creation includes all metadata fields from bulk upload form",
+        "Each uploaded image creates a product with unique category, subcategory, price, and description",
+        "Validation errors display per-image if required fields are missing",
+        "Success feedback shows which products were created successfully"
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "text": "Add subcategory field (Text) to Product data type in backend/main.mo to store product subcategory classification",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "create or add categorie and subcategorie"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Product type includes subcategory field",
+        "createProduct and updateProduct methods accept subcategory parameter",
+        "Subcategory is stored and retrieved with product data"
       ]
     }
   ],
   "constraints": [
-    "Must use Motoko for backend logic in a single actor architecture",
-    "Must use React with TypeScript and Tailwind CSS for frontend",
-    "Stripe integration must be implemented according to Internet Computer capabilities",
-    "All data persistence must use Motoko stable storage"
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Do not edit UI component sources in frontend/src/components/ui",
+    "Maintain single-actor architecture in backend/main.mo",
+    "Follow existing patterns for Stripe checkout integration when selling music items",
+    "Audio file validation must check for supported formats before upload",
+    "Bulk upload metadata fields must use existing store configuration (categories, pricing rules) from AdminStoreSettingsPage"
   ],
   "nonGoals": [
-    "Advanced analytics or reporting features",
-    "Social media integrations beyond basic sharing",
-    "Mobile native applications",
-    "Real-time chat or messaging between artists and clients",
-    "Third-party authentication providers beyond Internet Identity"
+    "Audio streaming or DRM protection for music files",
+    "Advanced audio editing or mixing features",
+    "Playlist creation or music player with queue management",
+    "Social features like music sharing or comments",
+    "Royalty tracking or split payments between multiple artists",
+    "Automated audio format conversion",
+    "Music discovery algorithms or recommendation engine"
   ],
   "imageRequirements": {
-    "required": [
-      "Warm and creative hero banner showing artistic tools and creative workspace with earthy tones (hero-banner.dim_1920x600.png)",
-      "Artist profile placeholder illustration with paintbrush and easel in warm colors (artist-placeholder.dim_400x400.png)",
-      "Product showcase image featuring framed artwork and creative merchandise display (product-showcase.dim_800x600.png)",
-      "Gig marketplace icon showing handshake and creative collaboration (gig-icon.dim_200x200.png)",
-      "Booking calendar illustration with artistic scheduling theme (booking-icon.dim_200x200.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

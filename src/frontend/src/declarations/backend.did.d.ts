@@ -74,9 +74,21 @@ export interface JobOffering {
   'jobTitle' : string,
   'budget' : bigint,
 }
+export interface Music {
+  'id' : string,
+  'title' : string,
+  'audioFileBlob' : ExternalBlob,
+  'description' : string,
+  'category' : string,
+  'artist' : Principal,
+  'price' : bigint,
+  'uploadDate' : bigint,
+}
+export interface PricingRule { 'maxPrice' : bigint, 'minPrice' : bigint }
 export interface Product {
   'id' : string,
   'title' : string,
+  'subcategory' : string,
   'artistId' : Principal,
   'productImages' : Array<ExternalBlob>,
   'description' : string,
@@ -102,6 +114,33 @@ export interface ShoppingItem {
   'priceInCents' : bigint,
   'productDescription' : string,
 }
+export interface StoreProductConfig {
+  'productCategoryLimit' : bigint,
+  'lowStockThreshold' : bigint,
+  'returnPeriodDays' : bigint,
+  'productCategories' : Array<string>,
+  'freeShippingThreshold' : bigint,
+  'productTags' : Array<string>,
+  'pricingRules' : PricingRule,
+  'filterOptions' : Array<StoreProductFilter>,
+  'inventoryTrackingEnabled' : boolean,
+  'requireApprovalFor' : {
+    'gigs' : boolean,
+    'jobs' : boolean,
+    'products' : boolean,
+  },
+  'defaultCurrency' : string,
+  'featuredProducts' : Array<string>,
+  'productStatuses' : Array<string>,
+  'taxRate' : bigint,
+}
+export interface StoreProductFilter {
+  'maxPrice' : [] | [bigint],
+  'available' : [] | [boolean],
+  'category' : [] | [string],
+  'rating' : [] | [bigint],
+  'minPrice' : [] | [bigint],
+}
 export interface StripeConfiguration {
   'allowedCountries' : Array<string>,
   'secretKey' : string,
@@ -110,6 +149,14 @@ export type StripeSessionStatus = {
     'completed' : { 'userPrincipal' : [] | [string], 'response' : string }
   } |
   { 'failed' : { 'error' : string } };
+export interface StripeStoreConfig {
+  'webhookSecret' : string,
+  'testMode' : boolean,
+  'secretKey' : string,
+  'currency' : string,
+  'publishableKey' : string,
+  'webhookEndpoint' : string,
+}
 export type Time = bigint;
 export interface TransformationInput {
   'context' : Uint8Array,
@@ -179,14 +226,21 @@ export interface _SERVICE {
   >,
   'createGig' : ActorMethod<[Gig], undefined>,
   'createJobOffering' : ActorMethod<[JobOffering], undefined>,
-  'createProduct' : ActorMethod<
-    [string, string, string, bigint, Array<ExternalBlob>],
+  'createMusic' : ActorMethod<
+    [string, string, ExternalBlob, bigint, string, string],
     undefined
   >,
+  'createProduct' : ActorMethod<
+    [string, string, string, bigint, Array<ExternalBlob>, string],
+    undefined
+  >,
+  'createProductFromImage' : ActorMethod<[string, ExternalBlob], undefined>,
   'createService' : ActorMethod<[CreateServiceRequest], undefined>,
   'deleteBooking' : ActorMethod<[string], undefined>,
   'deleteGig' : ActorMethod<[string], undefined>,
   'deleteJobOffering' : ActorMethod<[string], undefined>,
+  'deleteMusic' : ActorMethod<[string], undefined>,
+  'deleteProduct' : ActorMethod<[string], undefined>,
   'deleteService' : ActorMethod<[DeleteServiceRequest], undefined>,
   'findBookingsByArtist' : ActorMethod<[Principal], Array<Booking>>,
   'findBookingsByDate' : ActorMethod<[], Array<Booking>>,
@@ -194,32 +248,63 @@ export interface _SERVICE {
   'findGigsByPricing' : ActorMethod<[], Array<Gig>>,
   'findJobOfferingsByBudget' : ActorMethod<[], Array<JobOffering>>,
   'findJobOfferingsByDeadline' : ActorMethod<[], Array<JobOffering>>,
+  'findMusicByArtist' : ActorMethod<[Principal], Array<Music>>,
+  'findMusicByPrice' : ActorMethod<[], Array<Music>>,
   'findProductsByArtist' : ActorMethod<[Principal], Array<Product>>,
   'findProductsByPrice' : ActorMethod<[], Array<Product>>,
   'getAllArtists' : ActorMethod<[], AllArtistProfilesResponse>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllGigs' : ActorMethod<[], Array<Gig>>,
   'getAllJobOfferings' : ActorMethod<[], Array<JobOffering>>,
+  'getAllMusic' : ActorMethod<[], Array<Music>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getAllServices' : ActorMethod<[], GetAllServicesResponse>,
   'getArtistById' : ActorMethod<[string], ArtistProfileResponse>,
   'getAvailableTimeSlots' : ActorMethod<[Range], GetAvailableTimeSlotsResponse>,
   'getBookingsByCode' : ActorMethod<[string], GetBookingsByCodeResponse>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getMusicById' : ActorMethod<[string], [] | [Music]>,
   'getServicesByArtist' : ActorMethod<[Principal], GetServicesByArtistResponse>,
+  'getStoreProductConfig' : ActorMethod<[], StoreProductConfig>,
   'getStripeSessionStatus' : ActorMethod<[string], StripeSessionStatus>,
+  'getStripeStoreConfig' : ActorMethod<[], StripeStoreConfig>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isStripeConfigured' : ActorMethod<[], boolean>,
   'searchServicesByCategory' : ActorMethod<
     [string],
     SearchServicesByCategoryResponse
   >,
+  'setRequireApprovalFor' : ActorMethod<[boolean, boolean, boolean], undefined>,
   'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
+  'setStripeStoreConfig' : ActorMethod<[StripeStoreConfig], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateBooking' : ActorMethod<[Booking], undefined>,
   'updateGig' : ActorMethod<[Gig], undefined>,
   'updateJobOffering' : ActorMethod<[JobOffering], undefined>,
+  'updateMusic' : ActorMethod<
+    [string, string, bigint, string, string],
+    undefined
+  >,
+  'updateProduct' : ActorMethod<
+    [string, string, string, bigint, Array<ExternalBlob>, string],
+    undefined
+  >,
   'updateService' : ActorMethod<[bigint, UpdateServiceRequest], undefined>,
+  'updateStoreProductConfig' : ActorMethod<
+    [
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+      PricingRule,
+      Array<string>,
+      Array<string>,
+      Array<string>,
+      Array<string>,
+    ],
+    undefined
+  >,
   'uploadImage' : ActorMethod<[ExternalBlob], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -1,16 +1,18 @@
 # Specification
 
 ## Summary
-**Goal:** Build an artist platform that connects artists with clients through profiles, job postings, gigs, bookings, a product store, and integrated Stripe payments.
+**Goal:** Add a music library feature where artists can upload songs for sale, and enhance bulk image upload with metadata fields (category, subcategory, price, description).
 
 **Planned changes:**
-- Create artist profile system with bio, portfolio, skills, and contact information
-- Implement job offerings marketplace where employers can post opportunities with budget and deadlines
-- Build gigs marketplace where artists list services with pricing and delivery time
-- Add booking system with calendar availability for scheduling artist services
-- Create product store for artists to sell artwork, prints, and merchandise
-- Integrate Stripe payment processing for gigs, bookings, and product purchases
-- Design warm, creative visual identity with earth tones and artistic typography
-- Include generated hero banner, profile placeholders, and product showcase images
+- Add Music data type in backend with audio blob storage and metadata fields
+- Create backend methods for music CRUD operations (create, get all, get by ID, update, delete)
+- Build MusicLibraryPage component displaying music in grid layout with audio preview and purchase options
+- Add music upload dialog for authenticated artists with file selection and metadata inputs
+- Add /music route and navigation link in header
+- Create React Query hooks for music operations following existing patterns
+- Update cart functionality to support music items alongside products and gigs
+- Enhance BulkImageUpload component with category dropdown, subcategory input, price field, and description textarea for each image
+- Update bulk upload logic to pass all metadata to backend when creating products
+- Add subcategory field to Product data type in backend
 
-**User-visible outcome:** Artists can create profiles and list services, gigs, and products. Clients can browse offerings, book services, purchase gigs and products, and pay securely via Stripe. The platform features a cohesive, warm aesthetic appealing to creative professionals.
+**User-visible outcome:** Artists can upload songs to a music library where buyers can preview and purchase recordings. The music library is accessible via a new navigation link. When bulk uploading product images, users can now specify category, subcategory, price, and description for each image before creating products.

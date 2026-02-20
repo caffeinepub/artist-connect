@@ -13,7 +13,14 @@ import BookingsPage from './pages/BookingsPage';
 import BookServicePage from './pages/BookServicePage';
 import StorePage from './pages/StorePage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import MusicLibraryPage from './pages/MusicLibraryPage';
 import CartPage from './pages/CartPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailurePage from './pages/PaymentFailurePage';
+import AdminUserManagementPage from './pages/AdminUserManagementPage';
+import AdminSiteConfigPage from './pages/AdminSiteConfigPage';
+import AdminStoreSettingsPage from './pages/AdminStoreSettingsPage';
+import AdminStripeSettingsPage from './pages/AdminStripeSettingsPage';
 import { Toaster } from '@/components/ui/sonner';
 
 const rootRoute = createRootRoute({
@@ -92,10 +99,52 @@ const productDetailRoute = createRoute({
     component: ProductDetailPage
 });
 
+const musicRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/music',
+    component: MusicLibraryPage
+});
+
 const cartRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/cart',
     component: CartPage
+});
+
+const paymentSuccessRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/payment-success',
+    component: PaymentSuccessPage
+});
+
+const paymentFailureRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/payment-failure',
+    component: PaymentFailurePage
+});
+
+const adminUsersRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin/users',
+    component: AdminUserManagementPage
+});
+
+const adminSettingsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin/settings',
+    component: AdminSiteConfigPage
+});
+
+const adminStoreSettingsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin/store-settings',
+    component: AdminStoreSettingsPage
+});
+
+const adminStripeSettingsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/admin/stripe-settings',
+    component: AdminStripeSettingsPage
 });
 
 const routeTree = rootRoute.addChildren([
@@ -111,7 +160,14 @@ const routeTree = rootRoute.addChildren([
     bookServiceRoute,
     storeRoute,
     productDetailRoute,
-    cartRoute
+    musicRoute,
+    cartRoute,
+    paymentSuccessRoute,
+    paymentFailureRoute,
+    adminUsersRoute,
+    adminSettingsRoute,
+    adminStoreSettingsRoute,
+    adminStripeSettingsRoute
 ]);
 
 const router = createRouter({ routeTree });

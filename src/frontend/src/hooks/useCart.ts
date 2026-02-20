@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Product, Gig } from '../backend';
+import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CartItem {
-    type: 'product' | 'gig';
+    type: 'product' | 'gig' | 'music';
     id: string;
     name: string;
     description: string;
     price: number;
     quantity: number;
     imageUrl?: string;
+    artist?: string;
 }
 
 interface CartState {
