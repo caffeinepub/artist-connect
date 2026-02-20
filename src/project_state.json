@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
+  "projectStateVersion": 25,
   "summary": "Online platform for artists featuring job offerings, gigs, bookings, product store with music library for selling recordings, and Stripe payment integration",
   "architectural_notes": [
     "Platform targets artist community with multiple revenue streams",
@@ -290,6 +290,190 @@
         "REQ-43"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-accountdashboardpage-component-at-frontend-src-pages-accountdashboardpage-tsx-with-authentication-check-that-displays-user-s-account-information-navigation-cards-to-product-management-and-payment-settings-and-overview-statistics",
+      "title": "Create AccountDashboardPage component at frontend/src/pages/AccountDashboardPage.tsx with authentication check that displays user's account information, navigation cards to product management and payment settings, and overview statistics",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-account-dashboard-page-at-account-dashboard-in-app-tsx-router-configuration",
+      "title": "Add route for account dashboard page at /account/dashboard in App.tsx router configuration",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-productmanagementpage-component-at-frontend-src-pages-productmanagementpage-tsx-that-displays-all-products-created-by-the-authenticated-user-with-ability-to-edit-and-delete-products",
+      "title": "Create ProductManagementPage component at frontend/src/pages/ProductManagementPage.tsx that displays all products created by the authenticated user with ability to edit and delete products",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-product-management-page-at-account-products-in-app-tsx-router-configuration",
+      "title": "Add route for product management page at /account/products in App.tsx router configuration",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-paymentsettingspage-component-at-frontend-src-pages-paymentsettingspage-tsx-where-users-can-view-their-payment-history-and-configure-payment-preferences",
+      "title": "Create PaymentSettingsPage component at frontend/src/pages/PaymentSettingsPage.tsx where users can view their payment history and configure payment preferences",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-route-for-payment-settings-page-at-account-payments-in-app-tsx-router-configuration",
+      "title": "Add route for payment settings page at /account/payments in App.tsx router configuration",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-account-dashboard-navigation-link-to-the-user-dropdown-menu-in-layout-tsx-header-that-navigates-to-account-dashboard-and-is-visible-to-all-authenticated-users",
+      "title": "Add 'Account Dashboard' navigation link to the user dropdown menu in Layout.tsx header that navigates to /account/dashboard and is visible to all authenticated users",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-navigation-links-from-accountdashboardpage-to-productmanagementpage-account-products-and-paymentsettingspage-account-payments-using-clickable-cards-or-buttons",
+      "title": "Add navigation links from AccountDashboardPage to ProductManagementPage (/account/products) and PaymentSettingsPage (/account/payments) using clickable cards or buttons",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-admin-dropdown-menu-in-layout-tsx-header-is-visible-to-authenticated-users-with-admin-privileges-when-deployed-to-production",
+      "title": "Verify that the admin dropdown menu in Layout.tsx header is visible to authenticated users with admin privileges when deployed to production",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-temporary-admin-setup-page-or-mechanism-in-the-frontend-to-call-the-grant-admin-method-with-the-current-user-s-principal-id-from-internet-identity",
+      "title": "Create a temporary admin setup page or mechanism in the frontend to call the grant admin method with the current user's Principal ID from Internet Identity",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-after-granting-admin-privileges-the-admin-dropdown-menu-appears-in-the-layout-header-for-the-newly-promoted-admin-user",
+      "title": "Verify that after granting admin privileges, the admin dropdown menu appears in the Layout header for the newly promoted admin user",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-test-the-complete-flow-authenticate-with-internet-identity-grant-admin-privileges-to-self-and-confirm-admin-panel-visibility-and-functionality",
+      "title": "Test the complete flow: authenticate with Internet Identity, grant admin privileges to self, and confirm admin panel visibility and functionality",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-adminstripesettingspage-to-integrate-with-the-new-backend-stripe-configuration-methods-using-the-existing-usegetstripestoreconfig-and-usesetstripestoreconfig-hooks-from-usequeries-ts",
+      "title": "Update AdminStripeSettingsPage to integrate with the new backend Stripe configuration methods using the existing useGetStripeStoreConfig and useSetStripeStoreConfig hooks from useQueries.ts",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-validation-in-adminstripesettingspage-form-to-ensure-publishable-key-starts-with-pk-prefix-and-secret-key-starts-with-sk-prefix-following-stripe-s-key-format-conventions",
+      "title": "Add validation in AdminStripeSettingsPage form to ensure publishable key starts with 'pk_' prefix and secret key starts with 'sk_' prefix following Stripe's key format conventions",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cartpage-checkout-flow-to-use-the-configured-stripe-publishable-key-from-backend-when-creating-stripe-checkout-sessions",
+      "title": "Update CartPage checkout flow to use the configured Stripe publishable key from backend when creating Stripe checkout sessions",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-help-text-in-adminstripesettingspage-explaining-where-to-find-stripe-api-keys-stripe-dashboard-developers-api-keys-and-webhook-secrets-stripe-dashboard-developers-webhooks",
+      "title": "Add help text in AdminStripeSettingsPage explaining where to find Stripe API keys (Stripe Dashboard > Developers > API keys) and webhook secrets (Stripe Dashboard > Developers > Webhooks)",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-cartpage-checkout-flow-to-support-car-related-products-by-ensuring-the-existing-stripe-payment-integration-handles-cart-items-with-car-product-metadata-car-make-model-year-vin-if-applicable",
+      "title": "Update CartPage checkout flow to support car-related products by ensuring the existing Stripe payment integration handles cart items with car product metadata (car make, model, year, VIN if applicable)",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-adminstripesettingspage-configuration-publishable-key-secret-key-currency-is-properly-applied-to-car-product-checkout-sessions-to-ensure-payment-processing-works-for-vehicle-purchases",
+      "title": "Verify that AdminStripeSettingsPage configuration (publishable key, secret key, currency) is properly applied to car product checkout sessions to ensure payment processing works for vehicle purchases",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-batch-upload-interface-in-productmanagementpage-component-that-allows-users-to-select-and-upload-multiple-product-images-simultaneously",
+      "title": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-each-uploaded-image-in-productmanagementpage-as-an-editable-product-entry-with-input-fields-for-name-description-and-price-before-saving",
+      "title": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-preset-default-values-for-product-name-description-and-price-for-each-uploaded-image-in-the-batch-upload-interface",
+      "title": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-batch-product-creation-logic-in-productmanagementpage-that-creates-all-edited-product-entries-by-calling-the-backend-createproduct-method-for-each-item",
+      "title": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-success-and-error-toast-notifications-in-productmanagementpage-batch-upload-to-inform-users-of-creation-status-for-each-product",
+      "title": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -441,6 +625,68 @@
       "reqIds": [
         "REQ-44"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Ensure all admin routes (/admin/users, /admin/site-config, /admin/store-settings, /admin/stripe-settings) are accessible to authenticated admin users in production deployment",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Verify that backend isAdmin method correctly identifies admin users by their Principal ID in production environment",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Add backend method in main.mo to manually grant admin privileges to a specific Principal ID, accepting the Principal as a parameter and adding it to the admins list in AccessControl",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Create backend storage in main.mo to persist Stripe configuration with fields for publishable key, secret key, webhook secret, currency, and test mode status",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Add backend method setStripeConfig in main.mo that accepts publishable key, secret key, webhook secret, currency, and test mode parameters, and stores them in the Stripe configuration",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Add backend method getStripeConfig in main.mo that returns the current Stripe configuration with the secret key masked (show only last 4 characters)",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Add car-specific product category to the backend StoreConfig product categories array if not already present, enabling users to categorize products as car-related",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Add batch upload function in product management where each uploaded item becomes an editable product with preset name, description, and price",
+      "reqIds": [],
       "status": "pending"
     }
   ],

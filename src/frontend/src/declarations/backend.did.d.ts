@@ -212,6 +212,7 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addPortfolioImage' : ActorMethod<[ExternalBlob], undefined>,
+  'assignAdminPrivileges' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'bookService' : ActorMethod<[BookServiceRequest], undefined>,
   'calculateTimeRange' : ActorMethod<[CalculateTimeRangeRequest], undefined>,

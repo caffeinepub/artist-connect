@@ -1,5 +1,7 @@
-import { RouterProvider, createRouter, createRootRoute, createRoute } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ArtistsListPage from './pages/ArtistsListPage';
@@ -21,168 +23,210 @@ import AdminUserManagementPage from './pages/AdminUserManagementPage';
 import AdminSiteConfigPage from './pages/AdminSiteConfigPage';
 import AdminStoreSettingsPage from './pages/AdminStoreSettingsPage';
 import AdminStripeSettingsPage from './pages/AdminStripeSettingsPage';
-import { Toaster } from '@/components/ui/sonner';
+import AccountDashboardPage from './pages/AccountDashboardPage';
+import ProductManagementPage from './pages/ProductManagementPage';
+import PaymentSettingsPage from './pages/PaymentSettingsPage';
+import AdminSetupPage from './pages/AdminSetupPage';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const rootRoute = createRootRoute({
-    component: Layout
+  component: Layout,
 });
 
 const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: HomePage
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: HomePage,
 });
 
 const artistsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/artists',
-    component: ArtistsListPage
+  getParentRoute: () => rootRoute,
+  path: '/artists',
+  component: ArtistsListPage,
 });
 
 const artistProfileRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/artists/$id',
-    component: ArtistProfilePage
+  getParentRoute: () => rootRoute,
+  path: '/artists/$id',
+  component: ArtistProfilePage,
 });
 
 const myProfileRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/my-profile',
-    component: MyProfilePage
+  getParentRoute: () => rootRoute,
+  path: '/my-profile',
+  component: MyProfilePage,
 });
 
 const jobsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/jobs',
-    component: JobOfferingsPage
+  getParentRoute: () => rootRoute,
+  path: '/jobs',
+  component: JobOfferingsPage,
 });
 
 const jobDetailRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/jobs/$id',
-    component: JobOfferingDetailPage
+  getParentRoute: () => rootRoute,
+  path: '/jobs/$id',
+  component: JobOfferingDetailPage,
 });
 
 const gigsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/gigs',
-    component: GigsPage
+  getParentRoute: () => rootRoute,
+  path: '/gigs',
+  component: GigsPage,
 });
 
 const gigDetailRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/gigs/$id',
-    component: GigDetailPage
+  getParentRoute: () => rootRoute,
+  path: '/gigs/$id',
+  component: GigDetailPage,
 });
 
 const bookingsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/bookings',
-    component: BookingsPage
+  getParentRoute: () => rootRoute,
+  path: '/bookings',
+  component: BookingsPage,
 });
 
 const bookServiceRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/book/$artistId',
-    component: BookServicePage
+  getParentRoute: () => rootRoute,
+  path: '/book/$artistId',
+  component: BookServicePage,
 });
 
 const storeRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/store',
-    component: StorePage
+  getParentRoute: () => rootRoute,
+  path: '/store',
+  component: StorePage,
 });
 
 const productDetailRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/store/$id',
-    component: ProductDetailPage
+  getParentRoute: () => rootRoute,
+  path: '/store/$id',
+  component: ProductDetailPage,
 });
 
 const musicRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/music',
-    component: MusicLibraryPage
+  getParentRoute: () => rootRoute,
+  path: '/music',
+  component: MusicLibraryPage,
 });
 
 const cartRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/cart',
-    component: CartPage
+  getParentRoute: () => rootRoute,
+  path: '/cart',
+  component: CartPage,
 });
 
 const paymentSuccessRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/payment-success',
-    component: PaymentSuccessPage
+  getParentRoute: () => rootRoute,
+  path: '/payment-success',
+  component: PaymentSuccessPage,
 });
 
 const paymentFailureRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/payment-failure',
-    component: PaymentFailurePage
+  getParentRoute: () => rootRoute,
+  path: '/payment-failure',
+  component: PaymentFailurePage,
 });
 
 const adminUsersRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/admin/users',
-    component: AdminUserManagementPage
+  getParentRoute: () => rootRoute,
+  path: '/admin/users',
+  component: AdminUserManagementPage,
 });
 
-const adminSettingsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/admin/settings',
-    component: AdminSiteConfigPage
+const adminSiteConfigRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/site-config',
+  component: AdminSiteConfigPage,
 });
 
 const adminStoreSettingsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/admin/store-settings',
-    component: AdminStoreSettingsPage
+  getParentRoute: () => rootRoute,
+  path: '/admin/store-settings',
+  component: AdminStoreSettingsPage,
 });
 
 const adminStripeSettingsRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/admin/stripe-settings',
-    component: AdminStripeSettingsPage
+  getParentRoute: () => rootRoute,
+  path: '/admin/stripe-settings',
+  component: AdminStripeSettingsPage,
+});
+
+const accountDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/dashboard',
+  component: AccountDashboardPage,
+});
+
+const productManagementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/products',
+  component: ProductManagementPage,
+});
+
+const paymentSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account/payments',
+  component: PaymentSettingsPage,
+});
+
+const adminSetupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin-setup',
+  component: AdminSetupPage,
 });
 
 const routeTree = rootRoute.addChildren([
-    indexRoute,
-    artistsRoute,
-    artistProfileRoute,
-    myProfileRoute,
-    jobsRoute,
-    jobDetailRoute,
-    gigsRoute,
-    gigDetailRoute,
-    bookingsRoute,
-    bookServiceRoute,
-    storeRoute,
-    productDetailRoute,
-    musicRoute,
-    cartRoute,
-    paymentSuccessRoute,
-    paymentFailureRoute,
-    adminUsersRoute,
-    adminSettingsRoute,
-    adminStoreSettingsRoute,
-    adminStripeSettingsRoute
+  indexRoute,
+  artistsRoute,
+  artistProfileRoute,
+  myProfileRoute,
+  jobsRoute,
+  jobDetailRoute,
+  gigsRoute,
+  gigDetailRoute,
+  bookingsRoute,
+  bookServiceRoute,
+  storeRoute,
+  productDetailRoute,
+  musicRoute,
+  cartRoute,
+  paymentSuccessRoute,
+  paymentFailureRoute,
+  adminUsersRoute,
+  adminSiteConfigRoute,
+  adminStoreSettingsRoute,
+  adminStripeSettingsRoute,
+  accountDashboardRoute,
+  productManagementRoute,
+  paymentSettingsRoute,
+  adminSetupRoute,
 ]);
 
 const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {
-    interface Register {
-        router: typeof router;
-    }
+  interface Register {
+    router: typeof router;
+  }
 }
 
 export default function App() {
-    return (
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <RouterProvider router={router} />
-            <Toaster />
-        </ThemeProvider>
-    );
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }

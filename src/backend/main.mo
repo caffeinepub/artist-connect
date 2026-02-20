@@ -14,10 +14,9 @@ import OutCall "http-outcalls/outcall";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Nat "mo:core/Nat";
-import Migration "migration";
 
-// Use migration to get the correct types for with clause
-(with migration = Migration.run)
+
+
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();
@@ -449,10 +448,26 @@ actor {
   };
 
   public query ({ caller }) func findBookingsByArtist(artistId : Principal) : async [Booking] {
+    // Authorization check: Only the artist themselves, their clients, or admins can view bookings
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view bookings");
+    };
+
     let array = bookings.values().toArray();
-    array.filter(func(booking) {
+    let filtered = array.filter(func(booking) {
       booking.artistId == artistId;
     });
+
+    // Further filter based on caller permissions
+    if (AccessControl.isAdmin(accessControlState, caller) or caller == artistId) {
+      // Admins and the artist can see all their bookings
+      return filtered;
+    } else {
+      // Other users can only see bookings where they are the client
+      return filtered.filter(func(booking) {
+        booking.clientId == caller;
+      });
+    };
   };
 
   // Product Management
@@ -732,7 +747,9 @@ actor {
       minPrice = 0;
       maxPrice = 10000;
     };
-    productCategories = [];
+    productCategories = [
+      "cars" // Default car category
+    ];
     productTags = [];
     featuredProducts = [];
     productStatuses = ["draft", "active", "archived"];
@@ -758,7 +775,9 @@ actor {
     returnPeriodDays = 30;
     filterOptions = [];
     pricingRules = defaultPricingRules;
-    productCategories = [];
+    productCategories = [
+      "cars" // Default car category
+    ];
     productTags = [];
     featuredProducts = [];
     productStatuses = [];
@@ -884,7 +903,10 @@ actor {
     await Stripe.createCheckoutSession(getStripeConfig(), caller, items, successUrl, cancelUrl, transform);
   };
 
-  public func getStripeSessionStatus(sessionId : Text) : async Stripe.StripeSessionStatus {
+  public shared ({ caller }) func getStripeSessionStatus(sessionId : Text) : async Stripe.StripeSessionStatus {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check session status");
+    };
     await Stripe.getSessionStatus(getStripeConfig(), sessionId, transform);
   };
 
@@ -1116,5 +1138,18 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can calculate time ranges");
     };
+  };
+
+  // Grant Admin Rights manually
+  public shared ({ caller }) func assignAdminPrivileges(adminPrincipal : Principal) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can assign admin privileges");
+    };
+    AccessControl.assignRole(
+      accessControlState,
+      caller,
+      adminPrincipal,
+      #admin,
+    );
   };
 };

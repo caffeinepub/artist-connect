@@ -1,147 +1,84 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T07:53:52.270Z",
+  "generatedAt": "2026-02-20T13:23:19.506Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 11,
-    "implemented": 8,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-34",
-        "summary": "Create a Music data type in backend/main.mo with fields for title (Text), artist (Principal), audioFileBlob (Blob), price (Nat), description (Text), category (Text), uploadDate (Int), and unique ID",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-35",
-        "summary": "Add backend methods in main.mo for music management: createMusic (accepts audio blob, title, price, description, category), getAllMusic (returns all music items), getMusicById (returns single music item), updateMusic (modifies existing music), and deleteMusic (removes music item)",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-36",
-        "summary": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
+        "id": "REQ-70",
+        "summary": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/MusicLibraryPage.tsx"
+          "frontend/src/pages/ProductManagementPage.tsx",
+          "frontend/src/components/BatchProductUpload.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/MusicLibraryPage.tsx"
+          "frontend/src/pages/ProductManagementPage.tsx",
+          "frontend/src/components/BatchProductUpload.tsx"
         ]
       },
       {
-        "id": "REQ-37",
-        "summary": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
+        "id": "REQ-71",
+        "summary": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/MusicLibraryPage.tsx"
+          "frontend/src/components/BatchProductUpload.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/MusicLibraryPage.tsx"
+          "frontend/src/components/BatchProductUpload.tsx"
         ]
       },
       {
-        "id": "REQ-38",
-        "summary": "Add route for music library page at /music in App.tsx router configuration",
+        "id": "REQ-72",
+        "summary": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/BatchProductUpload.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/BatchProductUpload.tsx"
         ]
       },
       {
-        "id": "REQ-39",
-        "summary": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
+        "id": "REQ-73",
+        "summary": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-40",
-        "summary": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
-        "status": "implemented",
-        "plannedFiles": [
+          "frontend/src/components/BatchProductUpload.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/BatchProductUpload.tsx"
         ]
       },
       {
-        "id": "REQ-41",
-        "summary": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
+        "id": "REQ-74",
+        "summary": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useCart.ts",
-          "frontend/src/pages/CartPage.tsx"
+          "frontend/src/components/BatchProductUpload.tsx",
+          "frontend/src/pages/ProductManagementPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useCart.ts",
-          "frontend/src/pages/CartPage.tsx"
+          "frontend/src/components/BatchProductUpload.tsx",
+          "frontend/src/pages/ProductManagementPage.tsx"
         ]
-      },
-      {
-        "id": "REQ-42",
-        "summary": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/BulkImageUpload.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/BulkImageUpload.tsx"
-        ]
-      },
-      {
-        "id": "REQ-43",
-        "summary": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/StorePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/StorePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-44",
-        "summary": "Add subcategory field (Text) to Product data type in backend/main.mo to store product subcategory classification",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/BulkImageUpload.tsx",
-    "frontend/src/components/Layout.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useCart.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/CartPage.tsx",
-    "frontend/src/pages/MusicLibraryPage.tsx",
-    "frontend/src/pages/StorePage.tsx",
+    "frontend/src/components/BatchProductUpload.tsx",
+    "frontend/src/pages/ProductManagementPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Principal } from '@icp-sdk/core/principal';
 
 export interface CartItem {
     type: 'product' | 'gig' | 'music';
@@ -11,6 +10,7 @@ export interface CartItem {
     quantity: number;
     imageUrl?: string;
     artist?: string;
+    subcategory?: string;
 }
 
 interface CartState {

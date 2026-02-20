@@ -1,143 +1,105 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Music Library and Enhanced Bulk Upload with Metadata",
+  "title": "Add batch upload function in product management with editable items",
   "requirements": [
     {
-      "id": "REQ-36",
-      "summary": "Create MusicLibraryPage component displaying music items in a responsive grid with audio preview, pricing, and cart functionality",
+      "id": "REQ-70",
+      "summary": "Add batch upload interface in ProductManagementPage that allows users to select and upload multiple product images simultaneously",
       "acceptanceCriteria": [
-        "Page displays music items in a responsive grid",
-        "Each music card shows title, artist, price, and description",
-        "Audio preview player allows listening before purchase",
-        "Add to Cart button adds music item to shopping cart"
+        "ProductManagementPage displays a 'Batch Upload' button or section for authenticated users",
+        "Users can select multiple image files at once through a file input dialog",
+        "Selected files are validated for image format (JPEG, PNG, GIF, WebP) and size limits"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/MusicLibraryPage.tsx",
+          "path": "frontend/src/pages/ProductManagementPage.tsx",
+          "operation": "modify",
+          "description": "Add a 'Batch Upload' button in the header section that opens a batch upload dialog. Wire the button to trigger a state change that opens the batch upload interface. Ensure the button is visible only to authenticated users who own products or are admins."
+        },
+        {
+          "path": "frontend/src/components/BatchProductUpload.tsx",
           "operation": "create",
-          "description": "Create new page component that fetches all music via useGetAllMusic hook and displays items in a grid layout. Include audio preview using HTML5 audio element with ExternalBlob.getDirectURL() for streaming. Show title, artist name (from Principal), price formatted as currency, description, and 'Add to Cart' button that calls cart.addItem with type 'music'. Include loading skeleton states and empty state message. Use Card components from shadcn/ui for layout consistency."
+          "description": "Create a new component for batch product upload interface. Include a file input that accepts multiple image files (accept='image/jpeg,image/png,image/gif,image/webp' with multiple attribute). Use the existing fileValidation utility from frontend/src/utils/fileValidation.ts to validate selected files for format and size (10MB max per file). Display validation errors as toast notifications for rejected files. Pass only valid files to the preview/editing stage."
         }
       ]
     },
     {
-      "id": "REQ-37",
-      "summary": "Add authenticated music upload dialog in MusicLibraryPage with audio file selection and metadata input fields",
+      "id": "REQ-71",
+      "summary": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
       "acceptanceCriteria": [
-        "Dialog is accessible only to authenticated users",
-        "File input accepts common audio formats (MP3, WAV, FLAC, AAC)",
-        "Form includes required fields for title, price, description, and category",
-        "Upload converts audio file to ExternalBlob format before submission",
-        "Success toast notification appears after successful upload"
+        "Each uploaded image displays as a preview card with editable fields",
+        "Each entry includes text input for product name with a preset default value",
+        "Each entry includes textarea for product description with a preset default value",
+        "Each entry includes number input for price with a preset default value",
+        "Users can modify any field before final submission"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/MusicLibraryPage.tsx",
+          "path": "frontend/src/components/BatchProductUpload.tsx",
           "operation": "modify",
-          "description": "Add Dialog component with authenticated-user guard (check identity from useInternetIdentity). Include file input with accept attribute for .mp3,.wav,.flac,.aac,.m4a formats and max 50MB validation. Add form fields: title (text input), price (number input with min/max from pricing rules), description (textarea), category (text input or Select if categories exist). Convert selected audio file to ExternalBlob.fromBytes before calling useCreateMusic mutation. Show upload progress with withUploadProgress callback. Display toast on success/error. Position 'Upload Music' button in page header, visible only when authenticated."
+          "description": "Add a preview section that displays each validated image file as a card with image preview (use object URL for local preview). For each card, include editable form fields: text input for product name (labeled 'Product Name'), textarea for product description (labeled 'Description'), and number input for price in cents (labeled 'Price'). Each field should be bound to local component state that tracks all pending product entries. Include a remove button on each card to allow users to discard individual entries before submission."
         }
       ]
     },
     {
-      "id": "REQ-38",
-      "summary": "Add /music route to App.tsx router configuration for MusicLibraryPage",
+      "id": "REQ-72",
+      "summary": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
       "acceptanceCriteria": [
-        "Route /music renders MusicLibraryPage component",
-        "Route follows existing routing patterns in App.tsx"
+        "Product name is automatically generated (e.g., from filename or generic pattern like 'Product 1', 'Product 2')",
+        "Product description is automatically populated with a default placeholder text",
+        "Product price is automatically set to a default value (e.g., from store configuration or a sensible default)",
+        "All preset values are editable by the user before saving"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/BatchProductUpload.tsx",
           "operation": "modify",
-          "description": "Import MusicLibraryPage and add new Route with path='/music' that renders <MusicLibraryPage />. Position the route after the /store route definition, following the existing pattern used for other marketplace pages (gigs, jobs, store)."
+          "description": "When files are selected and validated, automatically generate default values for each product entry: product name derived from filename (remove extension, replace hyphens/underscores with spaces, capitalize first letter) or use pattern 'Product N' where N is the index + 1; product description set to 'Add product description here'; price set to a default value of 1000 cents ($10.00). Store these defaults in the component state for each pending product. Ensure all fields remain editable so users can modify before submission."
         }
       ]
     },
     {
-      "id": "REQ-39",
-      "summary": "Add 'Music Library' navigation link to Layout.tsx positioned after Store link",
+      "id": "REQ-73",
+      "summary": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
       "acceptanceCriteria": [
-        "Navigation link appears in main header",
-        "Link is visible to all users (authenticated and guest)",
-        "Link is positioned after Store link in navigation"
+        "A 'Create All Products' or 'Save All' button triggers the batch creation process",
+        "Each edited product entry is submitted to the backend createProduct method with its image, name, description, and price",
+        "Products are created sequentially or in parallel batches",
+        "Progress feedback is displayed during the batch creation process"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Layout.tsx",
+          "path": "frontend/src/components/BatchProductUpload.tsx",
           "operation": "modify",
-          "description": "Add new navigation Link to='/music' with text 'Music Library' in the main navigation array. Position it immediately after the Store link. Use the same styling and component structure as existing nav links to maintain UI consistency."
-        }
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "summary": "Create React Query hooks for music operations following established patterns",
-      "acceptanceCriteria": [
-        "All hooks follow React Query patterns used for products and gigs",
-        "Mutation hooks invalidate music queries on success",
-        "Hooks handle loading, error, and success states"
-      ],
-      "file_operations": [
+          "description": "Add a 'Create All Products' button at the bottom of the batch upload dialog that triggers batch creation. Implement batch creation logic that iterates through all pending product entries and calls the backend createProduct method for each (passing generated product ID, title, description, price in bigint, array containing the ExternalBlob from image file, and empty string for subcategory). Convert image files to ExternalBlob using ExternalBlob.fromBytes before submission. Track upload progress for each image using ExternalBlob.withUploadProgress() and display a progress indicator showing 'Creating product X of Y' during the process. Handle the creation process sequentially to avoid overwhelming the backend."
+        },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add five new hooks: useGetAllMusic (query hook calling actor.getAllMusic with queryKey ['music']), useGetMusicById (query with musicId parameter and queryKey ['music', musicId]), useCreateMusic (mutation calling actor.createMusic with parameters id, title, audioFileBlob, price, description, category, invalidates ['music'] on success), useUpdateMusic (mutation calling actor.updateMusic, invalidates ['music'] and specific ['music', id]), useDeleteMusic (mutation calling actor.deleteMusic, invalidates ['music']). Follow the same error handling and QueryClient patterns used in existing product/gig hooks."
+          "description": "Verify that the createProduct mutation hook exists and properly invalidates the 'products' query cache after successful creation. If needed, ensure the hook supports batch operations by being callable multiple times in sequence."
         }
       ]
     },
     {
-      "id": "REQ-41",
-      "summary": "Extend cart functionality to support music items alongside products and gigs",
+      "id": "REQ-74",
+      "summary": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
       "acceptanceCriteria": [
-        "Cart state supports music items alongside products and gigs",
-        "Music items display correctly in CartPage with audio icon",
-        "Total calculation includes music item prices"
+        "Success toast appears for each product successfully created",
+        "Error toast appears for any product that fails to create with error details",
+        "Final summary toast displays total success and failure counts after batch completion",
+        "Created products appear in the user's product list after successful creation"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useCart.ts",
+          "path": "frontend/src/components/BatchProductUpload.tsx",
           "operation": "modify",
-          "description": "Extend CartItem type to include music variant with fields: type: 'music', musicId: string, title: string, artist: Principal, price: number. Update addItem, removeItem, and updateQuantity functions to handle 'music' type. Ensure total calculation includes music items. Update persist storage to serialize/deserialize Principal correctly for music items."
+          "description": "Import and use the toast notification system (from sonner via the existing Toaster setup in App.tsx). During batch creation, display a success toast for each product created successfully (e.g., 'Product created: {productName}'). Display an error toast for any product that fails with the error message (e.g., 'Failed to create {productName}: {error}'). Track success and failure counts throughout the process. After all products are processed, display a final summary toast showing 'Batch upload complete: X products created, Y failed'. Close the batch upload dialog after successful completion and clear the pending product list. Ensure the product list in ProductManagementPage refreshes automatically via query invalidation."
         },
         {
-          "path": "frontend/src/pages/CartPage.tsx",
+          "path": "frontend/src/pages/ProductManagementPage.tsx",
           "operation": "modify",
-          "description": "Add rendering logic for music cart items. Display music icon (Music or DiscIcon from lucide-react) next to music items. Show title, artist name, and price. Include music items when creating ShoppingItem array for Stripe checkout. Format music items with productName combining title and artist, using music price and quantity."
-        }
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "summary": "Enhance BulkImageUpload component with metadata input fields for each uploaded image",
-      "acceptanceCriteria": [
-        "Each image preview shows editable fields for category, subcategory, price, and description",
-        "Category dropdown is populated from backend product categories configuration",
-        "Price field validates numeric input with minimum/maximum from store pricing rules",
-        "Description field supports multi-line text input",
-        "All metadata is submitted when creating products from bulk upload"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/BulkImageUpload.tsx",
-          "operation": "modify",
-          "description": "Extend FileWithPreview type to include metadata fields: category (string), subcategory (string), price (number), description (string). For each image preview card, add input controls: Select dropdown for category (fetch categories from useGetStoreProductConfig hook's productCategories array), text Input for subcategory, number Input for price with min/max validation from storeConfig.pricingRules, Textarea for description. Update onUploadComplete callback to pass array of objects containing both ExternalBlob and metadata. Add controlled state for metadata per file indexed by file preview URL. Ensure metadata is captured before upload completion."
-        }
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "summary": "Update bulk image upload logic in StorePage to pass metadata to createProduct backend capability",
-      "acceptanceCriteria": [
-        "Product creation includes all metadata fields from bulk upload form",
-        "Each uploaded image creates a product with unique category, subcategory, price, and description",
-        "Validation errors display per-image if required fields are missing",
-        "Success feedback shows which products were created successfully"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/StorePage.tsx",
-          "operation": "modify",
-          "description": "Update handleBulkUpload callback to receive array of objects with blob and metadata (category, subcategory, price, description) from BulkImageUpload. Validate each item has all required fields before calling useCreateProduct mutation. For each valid item, call createProduct with generated unique ID, title (can be 'Product ' + index or from filename), description, price (convert to bigint), productImages array containing the blob, and subcategory. Track success/failure per item and display aggregated results in toast notifications. Show validation errors with specific item references."
+          "description": "Wire the BatchProductUpload component into the page by adding it as a dialog that opens when the 'Batch Upload' button is clicked. Pass necessary props including onComplete callback that closes the dialog and triggers a refresh of the product list. Ensure proper state management for opening/closing the batch upload dialog."
         }
       ]
     }

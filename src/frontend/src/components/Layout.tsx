@@ -3,7 +3,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIsCallerAdmin } from '../hooks/useQueries';
 import { useCart } from '../hooks/useCart';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, Settings } from 'lucide-react';
+import { ShoppingCart, User, Settings, LayoutDashboard } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
     DropdownMenu,
@@ -97,6 +97,10 @@ export default function Layout() {
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => navigate({ to: '/account/dashboard' })}>
+                                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                                        Account Dashboard
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => navigate({ to: '/my-profile' })}>
                                         My Profile
                                     </DropdownMenuItem>
@@ -113,7 +117,7 @@ export default function Layout() {
                                             <DropdownMenuItem onClick={() => navigate({ to: '/admin/users' })}>
                                                 User Management
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/settings' })}>
+                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/site-config' })}>
                                                 Site Settings
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => navigate({ to: '/admin/store-settings' })}>

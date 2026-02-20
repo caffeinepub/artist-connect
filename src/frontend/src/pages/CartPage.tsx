@@ -1,16 +1,19 @@
 import { useCart } from '../hooks/useCart';
-import { useCreateCheckoutSession } from '../hooks/useQueries';
+import { useCreateCheckoutSession, useGetStripeStoreConfig, useIsCallerAdmin } from '../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Trash2, Plus, Minus, Music as MusicIcon } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Music as MusicIcon, AlertCircle, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from '@tanstack/react-router';
 import type { ShoppingItem } from '../backend';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, getCartTotal, clearCart } = useCart();
     const createCheckoutSession = useCreateCheckoutSession();
+    const { data: stripeConfig, isLoading: stripeConfigLoading } = useGetStripeStoreConfig();
+    const { data: isAdmin } = useIsCallerAdmin();
 
     const handleCheckout = async () => {
         if (items.length === 0) {
@@ -18,14 +21,36 @@ export default function CartPage() {
             return;
         }
 
+        // Check if Stripe is configured
+        if (!stripeConfig?.publishableKey) {
+            if (isAdmin) {
+                toast.error('Stripe is not configured. Please configure Stripe in the admin settings.');
+            } else {
+                toast.error('Payment processing is not available at this time. Please try again later.');
+            }
+            return;
+        }
+
         try {
-            const shoppingItems: ShoppingItem[] = items.map((item) => ({
-                productName: item.type === 'music' ? `${item.name} (Music)` : item.name,
-                productDescription: item.description,
-                priceInCents: BigInt(Math.round(item.price * 100)),
-                quantity: BigInt(item.quantity),
-                currency: 'usd'
-            }));
+            const shoppingItems: ShoppingItem[] = items.map((item) => {
+                // Include product type and category information in the product name for better tracking
+                let productName = item.name;
+                if (item.type === 'music') {
+                    productName = `${item.name} (Music)`;
+                } else if (item.type === 'product') {
+                    productName = `${item.name} (Product)`;
+                } else if (item.type === 'gig') {
+                    productName = `${item.name} (Gig)`;
+                }
+
+                return {
+                    productName,
+                    productDescription: item.description,
+                    priceInCents: BigInt(Math.round(item.price * 100)),
+                    quantity: BigInt(item.quantity),
+                    currency: 'usd'
+                };
+            });
 
             const session = await createCheckoutSession.mutateAsync(shoppingItems);
             
@@ -34,17 +59,48 @@ export default function CartPage() {
             }
 
             window.location.href = session.url;
-        } catch (error) {
-            toast.error('Failed to create checkout session');
-            console.error(error);
+        } catch (error: any) {
+            console.error('Checkout error:', error);
+            toast.error(error.message || 'Failed to create checkout session');
         }
     };
 
     const total = getCartTotal();
 
+    // Helper to get appropriate icon for cart item
+    const getItemIcon = (type: string) => {
+        switch (type) {
+            case 'music':
+                return <MusicIcon className="h-8 w-8 text-muted-foreground" />;
+            case 'product':
+                return <Car className="h-8 w-8 text-muted-foreground" />;
+            default:
+                return <ShoppingCart className="h-8 w-8 text-muted-foreground" />;
+        }
+    };
+
     return (
         <div className="container py-12">
             <h1 className="font-display text-4xl md:text-5xl font-bold mb-8">Shopping Cart</h1>
+
+            {!stripeConfigLoading && !stripeConfig?.publishableKey && (
+                <Alert className="mb-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        {isAdmin ? (
+                            <>
+                                Stripe payment is not configured.{' '}
+                                <Link to="/admin/stripe-settings" className="font-medium underline">
+                                    Configure Stripe settings
+                                </Link>
+                                {' '}to enable checkout for all products including cars, music, and gigs.
+                            </>
+                        ) : (
+                            'Payment processing is currently unavailable. Please check back later.'
+                        )}
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {items.length === 0 ? (
                 <Card className="p-12 text-center">
@@ -75,11 +131,7 @@ export default function CartPage() {
                                             />
                                         ) : (
                                             <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center">
-                                                {item.type === 'music' ? (
-                                                    <MusicIcon className="h-8 w-8 text-muted-foreground" />
-                                                ) : (
-                                                    <ShoppingCart className="h-8 w-8 text-muted-foreground" />
-                                                )}
+                                                {getItemIcon(item.type)}
                                             </div>
                                         )}
                                         <div className="flex-1">
@@ -160,7 +212,7 @@ export default function CartPage() {
                                     className="w-full"
                                     size="lg"
                                     onClick={handleCheckout}
-                                    disabled={createCheckoutSession.isPending}
+                                    disabled={createCheckoutSession.isPending || stripeConfigLoading || !stripeConfig?.publishableKey}
                                 >
                                     {createCheckoutSession.isPending ? 'Processing...' : 'Proceed to Checkout'}
                                 </Button>

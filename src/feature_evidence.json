@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-musiclibrarypage-component-at-frontend-src-pages-musiclibrarypage-tsx-that-displays-all-available-music-items-in-a-grid-layout-with-audio-preview-title-artist-name-price-and-add-to-cart-button",
-      "featureTitle": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
+      "featureId": "feature-add-batch-upload-interface-in-productmanagementpage-component-that-allows-users-to-select-and-upload-multiple-product-images-simultaneously",
+      "featureTitle": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
       "files": [
-        "frontend/src/pages/MusicLibraryPage.tsx"
+        "frontend/src/components/BatchProductUpload.tsx",
+        "frontend/src/pages/ProductManagementPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,15 +20,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-36"
+        "REQ-70"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-music-upload-dialog-in-musiclibrarypage-for-authenticated-artists-to-upload-songs-with-fields-for-audio-file-selection-title-price-description-and-category-dropdown",
-      "featureTitle": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
+      "featureId": "feature-display-each-uploaded-image-in-productmanagementpage-as-an-editable-product-entry-with-input-fields-for-name-description-and-price-before-saving",
+      "featureTitle": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
       "files": [
-        "frontend/src/pages/MusicLibraryPage.tsx"
+        "frontend/src/components/BatchProductUpload.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,15 +42,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-37"
+        "REQ-71"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-route-for-music-library-page-at-music-in-app-tsx-router-configuration",
-      "featureTitle": "Add route for music library page at /music in App.tsx router configuration",
+      "featureId": "feature-generate-preset-default-values-for-product-name-description-and-price-for-each-uploaded-image-in-the-batch-upload-interface",
+      "featureTitle": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
       "files": [
-        "frontend/src/App.tsx"
+        "frontend/src/components/BatchProductUpload.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -63,15 +64,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-72"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-music-library-navigation-link-to-layout-tsx-header-that-navigates-to-music-positioned-after-store",
-      "featureTitle": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
+      "featureId": "feature-implement-batch-product-creation-logic-in-productmanagementpage-that-creates-all-edited-product-entries-by-calling-the-backend-createproduct-method-for-each-item",
+      "featureTitle": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
       "files": [
-        "frontend/src/components/Layout.tsx"
+        "frontend/src/components/BatchProductUpload.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -85,15 +86,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-39"
+        "REQ-73"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-react-query-hooks-in-usequeries-ts-for-music-operations-usegetallmusic-usegetmusicbyid-usecreatemusic-useupdatemusic-and-usedeletemusic-following-established-patterns",
-      "featureTitle": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
+      "featureId": "feature-add-success-and-error-toast-notifications-in-productmanagementpage-batch-upload-to-inform-users-of-creation-status-for-each-product",
+      "featureTitle": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/BatchProductUpload.tsx",
+        "frontend/src/pages/ProductManagementPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -107,74 +109,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-40"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-cart-functionality-in-usecart-ts-to-support-music-items-with-type-music-tracking-musicid-title-artist-and-price",
-      "featureTitle": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
-      "files": [
-        "frontend/src/hooks/useCart.ts",
-        "frontend/src/pages/CartPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-41"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enhance-bulkimageupload-component-to-include-input-fields-for-category-dropdown-subcategory-text-input-price-number-input-and-description-textarea-for-each-uploaded-image",
-      "featureTitle": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
-      "files": [
-        "frontend/src/components/BulkImageUpload.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-42"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-bulk-image-upload-logic-in-storepage-to-pass-category-subcategory-price-and-description-metadata-from-bulkimageupload-component-to-the-backend-createproduct-method-for-each-image",
-      "featureTitle": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
-      "files": [
-        "frontend/src/pages/StorePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-43"
+        "REQ-74"
       ],
       "confidence": "high"
     }

@@ -1,222 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Add music library with song uploads and enhanced bulk image upload with metadata",
-  "projectName": "Artist Connect",
+  "title": "Add batch upload function in product management with editable items",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-34",
-      "text": "Create a Music data type in backend/main.mo with fields for title (Text), artist (Principal), audioFileBlob (Blob), price (Nat), description (Text), category (Text), uploadDate (Int), and unique ID",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Music type is defined in backend/main.mo with all required fields",
-        "ID field uses unique identifier generation similar to existing Product and Gig types",
-        "audioFileBlob field stores the uploaded audio file as a Blob"
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Add backend methods in main.mo for music management: createMusic (accepts audio blob, title, price, description, category), getAllMusic (returns all music items), getMusicById (returns single music item), updateMusic (modifies existing music), and deleteMusic (removes music item)",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
-        ]
-      },
-      "acceptanceCriteria": [
-        "createMusic method stores uploaded audio files and metadata",
-        "getAllMusic returns array of all music items with filtering by artist",
-        "getMusicById retrieves a single music item by ID",
-        "updateMusic allows modification of music metadata",
-        "deleteMusic removes music item and associated blob"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Create MusicLibraryPage component at frontend/src/pages/MusicLibraryPage.tsx that displays all available music items in a grid layout with audio preview, title, artist name, price, and 'Add to Cart' button",
+      "id": "REQ-70",
+      "text": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-batch-upload"
         ],
         "quotes": [
-          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
+          "In product management add a function for batch upload"
         ]
       },
       "acceptanceCriteria": [
-        "Page displays music items in a responsive grid",
-        "Each music card shows title, artist, price, and description",
-        "Audio preview player allows listening before purchase",
-        "Add to Cart button adds music item to shopping cart"
+        "ProductManagementPage displays a 'Batch Upload' button or section for authenticated users",
+        "Users can select multiple image files at once through a file input dialog",
+        "Selected files are validated for image format (JPEG, PNG, GIF, WebP) and size limits"
       ]
     },
     {
-      "id": "REQ-37",
-      "text": "Add music upload dialog in MusicLibraryPage for authenticated artists to upload songs with fields for audio file selection, title, price, description, and category dropdown",
+      "id": "REQ-71",
+      "text": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-batch-upload"
         ],
         "quotes": [
-          "Artist can upload a song to the music library and sell a copy of the recording to anyone"
+          "each item becomes an editable item for sale with preset name descripción and price"
         ]
       },
       "acceptanceCriteria": [
-        "Dialog is accessible only to authenticated users",
-        "File input accepts common audio formats (MP3, WAV, FLAC, AAC)",
-        "Form includes required fields for title, price, description, and category",
-        "Upload converts audio file to ExternalBlob format before submission",
-        "Success toast notification appears after successful upload"
+        "Each uploaded image displays as a preview card with editable fields",
+        "Each entry includes text input for product name with a preset default value",
+        "Each entry includes textarea for product description with a preset default value",
+        "Each entry includes number input for price with a preset default value",
+        "Users can modify any field before final submission"
       ]
     },
     {
-      "id": "REQ-38",
-      "text": "Add route for music library page at /music in App.tsx router configuration",
+      "id": "REQ-72",
+      "text": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Route /music renders MusicLibraryPage component",
-        "Route follows existing routing patterns in App.tsx"
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Add 'Music Library' navigation link to Layout.tsx header that navigates to /music, positioned after 'Store'",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigation link appears in main header",
-        "Link is visible to all users (authenticated and guest)",
-        "Link is positioned after Store link in navigation"
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Create React Query hooks in useQueries.ts for music operations: useGetAllMusic, useGetMusicById, useCreateMusic, useUpdateMusic, and useDeleteMusic following established patterns",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "All hooks follow React Query patterns used for products and gigs",
-        "Mutation hooks invalidate music queries on success",
-        "Hooks handle loading, error, and success states"
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "text": "Update cart functionality in useCart.ts to support music items with type 'music', tracking musicId, title, artist, and price",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
+          "msg-user-batch-upload"
         ],
         "quotes": [
-          "sell a copy of the recording to anyone"
+          "with preset name descripción and price"
         ]
       },
       "acceptanceCriteria": [
-        "Cart state supports music items alongside products and gigs",
-        "Music items display correctly in CartPage with audio icon",
-        "Total calculation includes music item prices"
+        "Product name is automatically generated (e.g., from filename or generic pattern like 'Product 1', 'Product 2')",
+        "Product description is automatically populated with a default placeholder text",
+        "Product price is automatically set to a default value (e.g., from store configuration or a sensible default)",
+        "All preset values are editable by the user before saving"
       ]
     },
     {
-      "id": "REQ-42",
-      "text": "Enhance BulkImageUpload component to include input fields for category dropdown, subcategory text input, price number input, and description textarea for each uploaded image",
+      "id": "REQ-73",
+      "text": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-batch-upload"
         ],
         "quotes": [
-          "when uploading batch images create or add categorie and subcategorie, price and description"
+          "each item becomes an editable item for sale"
         ]
       },
       "acceptanceCriteria": [
-        "Each image preview shows editable fields for category, subcategory, price, and description",
-        "Category dropdown is populated from backend product categories configuration",
-        "Price field validates numeric input with minimum/maximum from store pricing rules",
-        "Description field supports multi-line text input",
-        "All metadata is submitted when creating products from bulk upload"
+        "A 'Create All Products' or 'Save All' button triggers the batch creation process",
+        "Each edited product entry is submitted to the backend createProduct method with its image, name, description, and price",
+        "Products are created sequentially or in parallel batches",
+        "Progress feedback is displayed during the batch creation process"
       ]
     },
     {
-      "id": "REQ-43",
-      "text": "Update bulk image upload logic in StorePage to pass category, subcategory, price, and description metadata from BulkImageUpload component to the backend createProduct method for each image",
+      "id": "REQ-74",
+      "text": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "when uploading batch images create or add categorie and subcategorie, price and description"
+          "msg-user-batch-upload"
         ]
       },
       "acceptanceCriteria": [
-        "Product creation includes all metadata fields from bulk upload form",
-        "Each uploaded image creates a product with unique category, subcategory, price, and description",
-        "Validation errors display per-image if required fields are missing",
-        "Success feedback shows which products were created successfully"
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "text": "Add subcategory field (Text) to Product data type in backend/main.mo to store product subcategory classification",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "create or add categorie and subcategorie"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Product type includes subcategory field",
-        "createProduct and updateProduct methods accept subcategory parameter",
-        "Subcategory is stored and retrieved with product data"
+        "Success toast appears for each product successfully created",
+        "Error toast appears for any product that fails to create with error details",
+        "Final summary toast displays total success and failure counts after batch completion",
+        "Created products appear in the user's product list after successful creation"
       ]
     }
   ],
   "constraints": [
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
-    "Do not edit UI component sources in frontend/src/components/ui",
-    "Maintain single-actor architecture in backend/main.mo",
-    "Follow existing patterns for Stripe checkout integration when selling music items",
-    "Audio file validation must check for supported formats before upload",
-    "Bulk upload metadata fields must use existing store configuration (categories, pricing rules) from AdminStoreSettingsPage"
+    "Batch upload functionality must be added to ProductManagementPage, not StorePage",
+    "Use existing BulkImageUpload component patterns for image handling and validation",
+    "Follow existing product creation flow using the createProduct backend method",
+    "Maintain consistency with existing ProductManagementPage authentication checks and styling"
   ],
   "nonGoals": [
-    "Audio streaming or DRM protection for music files",
-    "Advanced audio editing or mixing features",
-    "Playlist creation or music player with queue management",
-    "Social features like music sharing or comments",
-    "Royalty tracking or split payments between multiple artists",
-    "Automated audio format conversion",
-    "Music discovery algorithms or recommendation engine"
+    "Modifying the existing StorePage bulk upload functionality",
+    "Creating new backend methods for batch product creation (use existing createProduct)",
+    "Adding batch edit or batch delete functionality for existing products",
+    "Implementing product templates or category-specific presets"
   ],
   "imageRequirements": {
     "required": [],

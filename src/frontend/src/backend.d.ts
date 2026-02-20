@@ -223,6 +223,7 @@ export enum UserRole {
 }
 export interface backendInterface {
     addPortfolioImage(blob: ExternalBlob): Promise<void>;
+    assignAdminPrivileges(adminPrincipal: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bookService(request: BookServiceRequest): Promise<void>;
     calculateTimeRange(arg0: CalculateTimeRangeRequest): Promise<void>;
