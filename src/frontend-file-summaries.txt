@@ -1,0 +1,9 @@
+{
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup for all routes including artists, jobs, gigs, bookings, store, and cart pages, wrapped with ThemeProvider and Toaster.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including artists, jobs, gigs, bookings, products, services, and Stripe checkout functionality.",
+  "frontend/src/components/Layout.tsx": "Main layout component with header navigation, authentication controls, shopping cart indicator, and footer with social links and attribution.",
+  "frontend/src/pages/PaymentSuccessPage.tsx": "Payment success confirmation page that displays success message, clears cart, and provides navigation options after successful Stripe checkout.",
+  "frontend/src/pages/PaymentFailurePage.tsx": "Payment failure page that displays error message and provides options to retry payment or return to cart after failed Stripe checkout.",
+  "frontend/src/pages/CartPage.tsx": "Shopping cart page with item management (add/remove/update quantity), order summary, and Stripe checkout integration.",
+  "frontend/src/components/UserProfileSetup.tsx": "Placeholder component for user profile setup that currently does nothing since backend user profile methods are not available."
+}

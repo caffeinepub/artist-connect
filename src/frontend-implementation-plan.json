@@ -1,0 +1,370 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Artist Connect Frontend - Marketplace, Bookings, Store, and Payments",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Create artist profile display and management UI with bio, portfolio images, skills, and contact information",
+      "acceptanceCriteria": [
+        "Artists can create and edit their profiles",
+        "Profiles display bio, portfolio images, skills, and contact information",
+        "Profiles are publicly viewable"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ArtistProfileForm.tsx",
+          "operation": "create",
+          "description": "Create form component for artists to input bio, skills, and contact information. Use the authorization component for authenticated profile creation. Use blob-storage component's ExternalBlob for portfolio image uploads with upload progress tracking. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ArtistProfileCard.tsx",
+          "operation": "create",
+          "description": "Create profile card component displaying artist bio, portfolio images using ExternalBlob.getDirectURL() for streaming/caching, skills, and contact information. Support both detailed and summary views."
+        },
+        {
+          "path": "frontend/src/pages/ArtistProfilePage.tsx",
+          "operation": "create",
+          "description": "Create page for viewing individual artist profiles using getArtistById. Display ArtistProfileCard with full details. Handle artist not found errors."
+        },
+        {
+          "path": "frontend/src/pages/ArtistsListPage.tsx",
+          "operation": "create",
+          "description": "Create page listing all artist profiles using getAllArtists. Display grid of ArtistProfileCard components. Link to individual profile pages."
+        },
+        {
+          "path": "frontend/src/pages/MyProfilePage.tsx",
+          "operation": "create",
+          "description": "Create page for authenticated artists to view and edit their own profile. Show ArtistProfileForm for editing and ArtistProfileCard for preview. Use authorization component to ensure user is authenticated. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useArtistProfile.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for artist profile operations: useGetArtistById, useGetAllArtists, useCreateArtistProfile, useAddPortfolioImage. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /artists (list), /artists/:id (individual profile), and /my-profile (authenticated artist's profile). Wire MyProfilePage with authentication guard."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement job offerings marketplace UI where employers can post and artists can browse job opportunities",
+      "acceptanceCriteria": [
+        "Employers can create job postings with title, description, budget, and deadline",
+        "Artists can browse and view all job postings",
+        "Job postings display all relevant details"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/JobOfferingForm.tsx",
+          "operation": "create",
+          "description": "Create form component for employers to create job postings with job title, description, budget (as number), and deadline (date picker). Use authorization component to ensure authenticated users can post. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/JobOfferingCard.tsx",
+          "operation": "create",
+          "description": "Create card component displaying job title, description, budget formatted as currency, deadline formatted as date, and employer information. Support both list and detail views."
+        },
+        {
+          "path": "frontend/src/pages/JobOfferingsPage.tsx",
+          "operation": "create",
+          "description": "Create page displaying all job offerings using getAllJobOfferings. Show grid of JobOfferingCard components with filter options (by budget using findJobOfferingsByBudget, by deadline using findJobOfferingsByDeadline). Include button to create new job offering for authenticated users."
+        },
+        {
+          "path": "frontend/src/pages/JobOfferingDetailPage.tsx",
+          "operation": "create",
+          "description": "Create page showing full job offering details. Display complete JobOfferingCard with all information. Include apply/contact button."
+        },
+        {
+          "path": "frontend/src/hooks/useJobOfferings.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for job offerings: useGetAllJobOfferings, useCreateJobOffering, useUpdateJobOffering, useDeleteJobOffering, useFindJobOfferingsByBudget, useFindJobOfferingsByDeadline. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /jobs (list) and /jobs/:id (detail). Wire authenticated routes with authorization guards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Create gigs marketplace UI where artists can list services and clients can browse and view gigs",
+      "acceptanceCriteria": [
+        "Artists can create gig listings with title, description, pricing, and delivery time",
+        "Clients can browse available gigs",
+        "Clients can view detailed gig information"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GigForm.tsx",
+          "operation": "create",
+          "description": "Create form component for artists to create gigs with title, description, pricing (as number), and delivery time (as duration/date). Use authorization component to ensure authenticated artists can create gigs. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/GigCard.tsx",
+          "operation": "create",
+          "description": "Create card component displaying gig title, description, pricing formatted as currency, delivery time, and artist information. Support both list and detail views with 'Book Now' button."
+        },
+        {
+          "path": "frontend/src/pages/GigsPage.tsx",
+          "operation": "create",
+          "description": "Create page displaying all gigs using getAllGigs. Show grid of GigCard components with filter options (by pricing using findGigsByPricing, by delivery time using findGigsByDeliveryTime). Include button for authenticated artists to create new gig."
+        },
+        {
+          "path": "frontend/src/pages/GigDetailPage.tsx",
+          "operation": "create",
+          "description": "Create page showing full gig details. Display complete GigCard with all information and prominent booking button that leads to payment flow."
+        },
+        {
+          "path": "frontend/src/hooks/useGigs.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for gigs: useGetAllGigs, useCreateGig, useUpdateGig, useDeleteGig, useFindGigsByPricing, useFindGigsByDeliveryTime. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /gigs (list) and /gigs/:id (detail). Wire authenticated routes with authorization guards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Build booking system UI with calendar interface for artist availability and client booking flow",
+      "acceptanceCriteria": [
+        "Artists can set their availability in a calendar interface",
+        "Clients can select available dates and times to book services",
+        "Bookings include service type and duration",
+        "Artists receive booking notifications"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AvailabilityCalendar.tsx",
+          "operation": "create",
+          "description": "Create calendar component for artists to view and manage their availability. Use getAvailableTimeSlots to fetch available slots. Display bookings using getAllBookings and findBookingsByArtist. Use a calendar library compatible with React and TypeScript."
+        },
+        {
+          "path": "frontend/src/components/BookingForm.tsx",
+          "operation": "create",
+          "description": "Create booking form component allowing clients to select service (from getServicesByArtist), date, time, and duration. Use getAvailableTimeSlots to show only available slots. Use authorization component to ensure authenticated users can book. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/BookingCard.tsx",
+          "operation": "create",
+          "description": "Create card component displaying booking details: service type, date, time, duration, client info, and status. Support list and detail views."
+        },
+        {
+          "path": "frontend/src/pages/BookingsPage.tsx",
+          "operation": "create",
+          "description": "Create page for managing bookings. For artists, show their bookings using findBookingsByArtist with AvailabilityCalendar. For clients, show their booking history. Filter by date using findBookingsByDate."
+        },
+        {
+          "path": "frontend/src/pages/BookServicePage.tsx",
+          "operation": "create",
+          "description": "Create page for clients to book a service. Display artist services, AvailabilityCalendar showing available slots, and BookingForm. After successful booking, navigate to booking confirmation with payment flow."
+        },
+        {
+          "path": "frontend/src/hooks/useBookings.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for bookings: useGetAllBookings, useCreateBooking, useUpdateBooking, useDeleteBooking, useFindBookingsByArtist, useFindBookingsByDate, useBookService, useGetAvailableTimeSlots. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/hooks/useServices.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for services: useGetAllServices, useCreateService, useUpdateService, useDeleteService, useGetServicesByArtist, useSearchServicesByCategory. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /bookings (list/calendar) and /book/:artistId (booking flow). Wire authenticated routes with authorization guards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Create product store UI where artists can list products and customers can browse and add to cart",
+      "acceptanceCriteria": [
+        "Artists can create product listings with images, descriptions, and prices",
+        "Customers can browse all available products",
+        "Customers can add products to a shopping cart",
+        "Product images are displayed clearly"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProductForm.tsx",
+          "operation": "create",
+          "description": "Create form component for artists to create product listings with title, description, price, and multiple product images. Use blob-storage component's ExternalBlob for image uploads with upload progress tracking. Use authorization component to ensure authenticated artists can create products. Verify the blob-storage component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProductCard.tsx",
+          "operation": "create",
+          "description": "Create card component displaying product title, primary image using ExternalBlob.getDirectURL(), price formatted as currency, and 'Add to Cart' button. Support both grid and detail views."
+        },
+        {
+          "path": "frontend/src/components/ShoppingCart.tsx",
+          "operation": "create",
+          "description": "Create shopping cart component displaying cart items with quantities, individual prices, and total. Include remove item and update quantity controls. Show checkout button that initiates payment flow."
+        },
+        {
+          "path": "frontend/src/pages/StorePage.tsx",
+          "operation": "create",
+          "description": "Create store page displaying all products using getAllProducts. Show grid of ProductCard components with filter options (by artist using findProductsByArtist, by price using findProductsByPrice). Include button for authenticated artists to add new product."
+        },
+        {
+          "path": "frontend/src/pages/ProductDetailPage.tsx",
+          "operation": "create",
+          "description": "Create product detail page showing full product information with image gallery using ExternalBlob.getDirectURL() for all product images. Display ProductCard in detail mode with quantity selector and 'Add to Cart' button."
+        },
+        {
+          "path": "frontend/src/hooks/useProducts.ts",
+          "operation": "create",
+          "description": "Create React Query hooks for products: useGetAllProducts, useCreateProduct, useFindProductsByArtist, useFindProductsByPrice. Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/hooks/useCart.ts",
+          "operation": "create",
+          "description": "Create custom hook managing shopping cart state using React Context or local storage. Provide addToCart, removeFromCart, updateQuantity, clearCart, and getCartItems functions."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /store (product list), /store/:id (product detail), and /cart (shopping cart). Wire authenticated routes with authorization guards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Integrate Stripe payment processing UI for gig purchases, bookings, and product store orders",
+      "acceptanceCriteria": [
+        "Stripe payment form accepts credit and debit cards",
+        "Payments process successfully for gigs, bookings, and products",
+        "Payment confirmation is displayed to users after successful transactions",
+        "Failed payments show appropriate error messages"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/PaymentSetup.tsx",
+          "operation": "create",
+          "description": "Create payment setup component for admin configuration. Use the stripe component to check isStripeConfigured and provide setStripeConfiguration interface. Display form for Stripe secret key and allowed countries list. Show only to admin users and only when not yet configured. Use authorization component to guard admin access. Verify the stripe component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/CheckoutButton.tsx",
+          "operation": "create",
+          "description": "Create checkout button component that initiates Stripe checkout. Accepts ShoppingItem array as prop. Use the stripe component's createCheckoutSession via useCreateCheckoutSession hook. On success, validate session.url exists and redirect using window.location.href (not router navigation). Handle loading and error states."
+        },
+        {
+          "path": "frontend/src/pages/PaymentSuccessPage.tsx",
+          "operation": "create",
+          "description": "Create payment success page displayed after successful Stripe checkout. Show confirmation message, order summary, and link to view order/booking. Query session status using getStripeSessionStatus if session ID is in URL params."
+        },
+        {
+          "path": "frontend/src/pages/PaymentFailurePage.tsx",
+          "operation": "create",
+          "description": "Create payment failure page displayed after failed/cancelled Stripe checkout. Show appropriate error message and options to retry or return to cart/product."
+        },
+        {
+          "path": "frontend/src/hooks/useStripeCheckout.ts",
+          "operation": "create",
+          "description": "Create React Query hook useCreateCheckoutSession following stripe component usage instructions. Call createCheckoutSession with items, successUrl, and cancelUrl. Parse JSON result and validate session.url exists before returning. Throw error if url is missing. Include useIsStripeConfigured and useSetStripeConfiguration hooks."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register routes for /payment-success and /payment-failure pointing to PaymentSuccessPage and PaymentFailurePage respectively. These routes are required by the stripe component."
+        },
+        {
+          "path": "frontend/src/components/ShoppingCart.tsx",
+          "operation": "modify",
+          "description": "Modify checkout button to use CheckoutButton component with cart items converted to ShoppingItem format (productName, productDescription, priceInCents, quantity, currency)."
+        },
+        {
+          "path": "frontend/src/pages/GigDetailPage.tsx",
+          "operation": "modify",
+          "description": "Modify 'Book Now' button to use CheckoutButton component, converting gig details to ShoppingItem format."
+        },
+        {
+          "path": "frontend/src/pages/BookServicePage.tsx",
+          "operation": "modify",
+          "description": "Modify booking confirmation to use CheckoutButton component, converting booking service details to ShoppingItem format."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Design cohesive visual identity with warm, creative aesthetics using earth tones and artistic typography",
+      "acceptanceCriteria": [
+        "All pages follow a consistent color palette with warm, earthy tones",
+        "Typography choices reflect creative and artistic sensibility",
+        "Layout and spacing create an inviting, gallery-like atmosphere",
+        "Visual style is coherent across profile pages, marketplace, bookings, and store"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Define global color palette with warm earth tones (terracotta, ochre, sage, cream) as CSS custom properties. Add artistic typography choices with display and body font families. Set base spacing and layout variables for gallery-like atmosphere."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme with custom color palette matching earth tones. Configure custom font families for artistic typography. Add spacing and borderRadius values that support gallery-like layouts. Ensure shadcn/ui components inherit the custom theme."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "create",
+          "description": "Create layout component providing consistent page structure with header, navigation, main content area, and footer. Apply warm color scheme and gallery-like spacing. Include navigation links to all main sections (artists, jobs, gigs, bookings, store, cart). Use authorization component for conditional rendering of authenticated user actions. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Wrap all routes with Layout component to ensure consistent visual identity across all pages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Display generated hero banner, artist profile placeholder images, and product showcase images as static assets",
+      "acceptanceCriteria": [
+        "Hero banner image displays on the main landing page",
+        "Artist profile placeholders are used for profiles without custom images",
+        "Product showcase images are rendered in the store section",
+        "All generated images are served from frontend/public/assets/generated"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "create",
+          "description": "Create home/landing page displaying hero banner image from frontend/public/assets/generated/hero-banner.dim_1920x600.png. Include welcome message, platform overview, and call-to-action buttons linking to artists, gigs, jobs, and store sections. Apply warm, creative design theme."
+        },
+        {
+          "path": "frontend/src/components/ArtistProfileCard.tsx",
+          "operation": "modify",
+          "description": "Modify to use frontend/public/assets/generated/artist-placeholder.dim_400x400.png as fallback image when artist profile has no portfolio images. Display generated image using img tag with src pointing to /assets/generated/artist-placeholder.dim_400x400.png."
+        },
+        {
+          "path": "frontend/src/pages/StorePage.tsx",
+          "operation": "modify",
+          "description": "Add hero section at top of store page displaying frontend/public/assets/generated/product-showcase.dim_800x600.png to showcase featured products and establish store identity. Use img tag with src /assets/generated/product-showcase.dim_800x600.png."
+        },
+        {
+          "path": "frontend/src/pages/GigsPage.tsx",
+          "operation": "modify",
+          "description": "Add visual header section using frontend/public/assets/generated/gig-icon.dim_200x200.png to represent gig marketplace. Use img tag with src /assets/generated/gig-icon.dim_200x200.png."
+        },
+        {
+          "path": "frontend/src/pages/BookingsPage.tsx",
+          "operation": "modify",
+          "description": "Add visual header section using frontend/public/assets/generated/booking-icon.dim_200x200.png to represent booking calendar. Use img tag with src /assets/generated/booking-icon.dim_200x200.png."
+        },
+        {
+          "path": "frontend/src/routes.tsx",
+          "operation": "modify",
+          "description": "Register route for / (root path) pointing to HomePage."
+        }
+      ]
+    }
+  ]
+}

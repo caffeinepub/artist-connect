@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Online platform for artists featuring job offerings, gigs, bookings, product store, and Stripe payment integration",
+  "architectural_notes": [
+    "Platform targets artist community with multiple revenue streams",
+    "Payment processing via Stripe with card payment support required",
+    "Multi-feature marketplace combining jobs, gigs, bookings, and products"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Warm and creative hero banner showing artistic tools and creative workspace with earthy tones (hero-banner.dim_1920x600.png)\n- Artist profile placeholder illustration with paintbrush and easel in warm colors (artist-placeholder.dim_400x400.png)\n- Product showcase image featuring framed artwork and creative merchandise display (product-showcase.dim_800x600.png)\n- Gig marketplace icon showing handshake and creative collaboration (gig-icon.dim_200x200.png)\n- Booking calendar illustration with artistic scheduling theme (booking-icon.dim_200x200.png)",
+  "existing_features": [
+    {
+      "id": "feature-create-artist-profile-system-where-artists-can-register-create-profiles-with-bio-portfolio-images-skills-and-contact-information",
+      "title": "Create artist profile system where artists can register, create profiles with bio, portfolio images, skills, and contact information",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-job-offerings-marketplace-where-employers-can-post-job-opportunities-for-artists-with-job-title-description-budget-and-deadline",
+      "title": "Implement job offerings marketplace where employers can post job opportunities for artists with job title, description, budget, and deadline",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-gigs-marketplace-where-artists-can-list-their-services-gigs-with-title-description-pricing-and-delivery-time-and-clients-can-browse-and-purchase-gigs",
+      "title": "Create gigs marketplace where artists can list their services (gigs) with title, description, pricing, and delivery time, and clients can browse and purchase gigs",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-booking-system-where-clients-can-book-artist-services-by-selecting-date-time-service-type-and-duration-with-availability-calendar-for-artists",
+      "title": "Build booking system where clients can book artist services by selecting date, time, service type, and duration, with availability calendar for artists",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-product-store-where-artists-can-list-physical-or-digital-products-artwork-prints-merchandise-with-images-descriptions-and-prices-and-customers-can-browse-and-add-items-to-cart",
+      "title": "Create product store where artists can list physical or digital products (artwork, prints, merchandise) with images, descriptions, and prices, and customers can browse and add items to cart",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-stripe-payment-processing-to-handle-card-payments-for-gig-purchases-bookings-and-product-store-orders",
+      "title": "Integrate Stripe payment processing to handle card payments for gig purchases, bookings, and product store orders",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-a-cohesive-visual-identity-with-warm-creative-aesthetics-using-earth-tones-and-artistic-typography-that-appeals-to-artists-and-creative-professionals-applying-this-style-consistently-across-all-pages-and-components",
+      "title": "Design a cohesive visual identity with warm, creative aesthetics using earth tones and artistic typography that appeals to artists and creative professionals, applying this style consistently across all pages and components",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-generated-hero-banner-artist-profile-placeholder-images-and-product-showcase-images-as-static-assets-in-frontend-public-assets-generated",
+      "title": "Display generated hero banner, artist profile placeholder images, and product showcase images as static assets in frontend/public/assets/generated",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Artist profile and support system",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Job offerings and gigs marketplace",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Booking system for artist services",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Product store for artist merchandise",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Stripe payment integration with card support",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Artist Connect",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

@@ -1,0 +1,174 @@
+{
+  "kind": "build_request",
+  "title": "Build artist platform with jobs, gigs, bookings, store, and Stripe payments",
+  "projectName": "Artist Connect",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Create artist profile system where artists can register, create profiles with bio, portfolio images, skills, and contact information",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Online support for artists"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Artists can create and edit their profiles",
+        "Profiles display bio, portfolio images, skills, and contact information",
+        "Profiles are publicly viewable"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement job offerings marketplace where employers can post job opportunities for artists with job title, description, budget, and deadline",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "job offerings"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Employers can create job postings with title, description, budget, and deadline",
+        "Artists can browse and view all job postings",
+        "Job postings display all relevant details"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Create gigs marketplace where artists can list their services (gigs) with title, description, pricing, and delivery time, and clients can browse and purchase gigs",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "gigs"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Artists can create gig listings with title, description, pricing, and delivery time",
+        "Clients can browse available gigs",
+        "Clients can view detailed gig information"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Build booking system where clients can book artist services by selecting date, time, service type, and duration, with availability calendar for artists",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "bookings"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Artists can set their availability in a calendar interface",
+        "Clients can select available dates and times to book services",
+        "Bookings include service type and duration",
+        "Artists receive booking notifications"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create product store where artists can list physical or digital products (artwork, prints, merchandise) with images, descriptions, and prices, and customers can browse and add items to cart",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "product store"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Artists can create product listings with images, descriptions, and prices",
+        "Customers can browse all available products",
+        "Customers can add products to a shopping cart",
+        "Product images are displayed clearly"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Integrate Stripe payment processing to handle card payments for gig purchases, bookings, and product store orders",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "take stripe pqyment with card"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Stripe payment form accepts credit and debit cards",
+        "Payments process successfully for gigs, bookings, and products",
+        "Payment confirmation is displayed to users after successful transactions",
+        "Failed payments show appropriate error messages"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Design a cohesive visual identity with warm, creative aesthetics using earth tones and artistic typography that appeals to artists and creative professionals, applying this style consistently across all pages and components",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All pages follow a consistent color palette with warm, earthy tones",
+        "Typography choices reflect creative and artistic sensibility",
+        "Layout and spacing create an inviting, gallery-like atmosphere",
+        "Visual style is coherent across profile pages, marketplace, bookings, and store"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Display generated hero banner, artist profile placeholder images, and product showcase images as static assets in frontend/public/assets/generated",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hero banner image displays on the main landing page",
+        "Artist profile placeholders are used for profiles without custom images",
+        "Product showcase images are rendered in the store section",
+        "All generated images are served from frontend/public/assets/generated"
+      ]
+    }
+  ],
+  "constraints": [
+    "Must use Motoko for backend logic in a single actor architecture",
+    "Must use React with TypeScript and Tailwind CSS for frontend",
+    "Stripe integration must be implemented according to Internet Computer capabilities",
+    "All data persistence must use Motoko stable storage"
+  ],
+  "nonGoals": [
+    "Advanced analytics or reporting features",
+    "Social media integrations beyond basic sharing",
+    "Mobile native applications",
+    "Real-time chat or messaging between artists and clients",
+    "Third-party authentication providers beyond Internet Identity"
+  ],
+  "imageRequirements": {
+    "required": [
+      "Warm and creative hero banner showing artistic tools and creative workspace with earthy tones (hero-banner.dim_1920x600.png)",
+      "Artist profile placeholder illustration with paintbrush and easel in warm colors (artist-placeholder.dim_400x400.png)",
+      "Product showcase image featuring framed artwork and creative merchandise display (product-showcase.dim_800x600.png)",
+      "Gig marketplace icon showing handshake and creative collaboration (gig-icon.dim_200x200.png)",
+      "Booking calendar illustration with artistic scheduling theme (booking-icon.dim_200x200.png)"
+    ],
+    "edits": []
+  }
+}
