@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-batch-upload-interface-in-productmanagementpage-component-that-allows-users-to-select-and-upload-multiple-product-images-simultaneously",
-      "featureTitle": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
+      "featureId": "feature-display-stripe-settings-section-in-the-user-account-dashboard-accountdashboardpage-with-a-navigation-card-that-links-to-the-payment-settings-page-similar-to-the-existing-product-management-card",
+      "featureTitle": "Display Stripe settings section in the user account dashboard (AccountDashboardPage) with a navigation card that links to the payment settings page, similar to the existing Product Management card",
       "files": [
-        "frontend/src/components/BatchProductUpload.tsx",
-        "frontend/src/pages/ProductManagementPage.tsx"
+        "frontend/src/pages/AccountDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,96 +19,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-70"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-display-each-uploaded-image-in-productmanagementpage-as-an-editable-product-entry-with-input-fields-for-name-description-and-price-before-saving",
-      "featureTitle": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
-      "files": [
-        "frontend/src/components/BatchProductUpload.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-71"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-generate-preset-default-values-for-product-name-description-and-price-for-each-uploaded-image-in-the-batch-upload-interface",
-      "featureTitle": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
-      "files": [
-        "frontend/src/components/BatchProductUpload.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-72"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-batch-product-creation-logic-in-productmanagementpage-that-creates-all-edited-product-entries-by-calling-the-backend-createproduct-method-for-each-item",
-      "featureTitle": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
-      "files": [
-        "frontend/src/components/BatchProductUpload.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-73"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-success-and-error-toast-notifications-in-productmanagementpage-batch-upload-to-inform-users-of-creation-status-for-each-product",
-      "featureTitle": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
-      "files": [
-        "frontend/src/components/BatchProductUpload.tsx",
-        "frontend/src/pages/ProductManagementPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "stripe@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-74"
+        "REQ-9"
       ],
       "confidence": "high"
     }

@@ -15,11 +15,14 @@ import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Nat "mo:core/Nat";
 
-
-
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();
+
+  // Grant admin rights to the currently authenticated user
+  public shared ({ caller }) func grantAdminPrivileges() : async () {
+    AccessControl.assignRole(accessControlState, caller, caller, #admin);
+  };
 
   // Include authorization mixin for user profile management
   include MixinAuthorization(accessControlState);
@@ -1138,18 +1141,5 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can calculate time ranges");
     };
-  };
-
-  // Grant Admin Rights manually
-  public shared ({ caller }) func assignAdminPrivileges(adminPrincipal : Principal) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
-      Runtime.trap("Unauthorized: Only admins can assign admin privileges");
-    };
-    AccessControl.assignRole(
-      accessControlState,
-      caller,
-      adminPrincipal,
-      #admin,
-    );
   };
 };

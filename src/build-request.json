@@ -1,112 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Add batch upload function in product management with editable items",
-  "priority": "normal",
+  "title": "Show Stripe settings in user panel and grant admin access",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-70",
-      "text": "Add batch upload interface in ProductManagementPage component that allows users to select and upload multiple product images simultaneously",
+      "id": "REQ-9",
+      "text": "Display Stripe settings section in the user account dashboard (AccountDashboardPage) with a navigation card that links to the payment settings page, similar to the existing Product Management card",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-batch-upload"
+          "msg-latest"
         ],
         "quotes": [
-          "In product management add a function for batch upload"
+          "stripe settings are not showing in user pannel"
         ]
       },
       "acceptanceCriteria": [
-        "ProductManagementPage displays a 'Batch Upload' button or section for authenticated users",
-        "Users can select multiple image files at once through a file input dialog",
-        "Selected files are validated for image format (JPEG, PNG, GIF, WebP) and size limits"
+        "User account dashboard shows a Stripe Settings or Payment Settings card alongside the Product Management card",
+        "Clicking the card navigates to the payment settings page",
+        "Card is visible to all authenticated users"
       ]
     },
     {
-      "id": "REQ-71",
-      "text": "Display each uploaded image in ProductManagementPage as an editable product entry with input fields for name, description, and price before saving",
-      "target": "frontend",
+      "id": "REQ-10",
+      "text": "Grant admin privileges to the current authenticated user on the live production deployment so they can access admin features including Stripe configuration",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-batch-upload"
+          "msg-latest"
         ],
         "quotes": [
-          "each item becomes an editable item for sale with preset name descripción and price"
+          "make me admin in live page"
         ]
       },
       "acceptanceCriteria": [
-        "Each uploaded image displays as a preview card with editable fields",
-        "Each entry includes text input for product name with a preset default value",
-        "Each entry includes textarea for product description with a preset default value",
-        "Each entry includes number input for price with a preset default value",
-        "Users can modify any field before final submission"
-      ]
-    },
-    {
-      "id": "REQ-72",
-      "text": "Generate preset default values for product name, description, and price for each uploaded image in the batch upload interface",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-batch-upload"
-        ],
-        "quotes": [
-          "with preset name descripción and price"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Product name is automatically generated (e.g., from filename or generic pattern like 'Product 1', 'Product 2')",
-        "Product description is automatically populated with a default placeholder text",
-        "Product price is automatically set to a default value (e.g., from store configuration or a sensible default)",
-        "All preset values are editable by the user before saving"
-      ]
-    },
-    {
-      "id": "REQ-73",
-      "text": "Implement batch product creation logic in ProductManagementPage that creates all edited product entries by calling the backend createProduct method for each item",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-batch-upload"
-        ],
-        "quotes": [
-          "each item becomes an editable item for sale"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A 'Create All Products' or 'Save All' button triggers the batch creation process",
-        "Each edited product entry is submitted to the backend createProduct method with its image, name, description, and price",
-        "Products are created sequentially or in parallel batches",
-        "Progress feedback is displayed during the batch creation process"
-      ]
-    },
-    {
-      "id": "REQ-74",
-      "text": "Add success and error toast notifications in ProductManagementPage batch upload to inform users of creation status for each product",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-batch-upload"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Success toast appears for each product successfully created",
-        "Error toast appears for any product that fails to create with error details",
-        "Final summary toast displays total success and failure counts after batch completion",
-        "Created products appear in the user's product list after successful creation"
+        "The current user's principal is added to the admin role in the backend",
+        "User can access admin pages including AdminStripeSettingsPage after being granted admin access",
+        "Admin role persists across sessions"
       ]
     }
   ],
   "constraints": [
-    "Batch upload functionality must be added to ProductManagementPage, not StorePage",
-    "Use existing BulkImageUpload component patterns for image handling and validation",
-    "Follow existing product creation flow using the createProduct backend method",
-    "Maintain consistency with existing ProductManagementPage authentication checks and styling"
+    "Do not modify existing admin assignment logic in AdminSetupPage",
+    "Preserve existing payment settings page functionality",
+    "Maintain authentication checks for admin-only pages"
   ],
   "nonGoals": [
-    "Modifying the existing StorePage bulk upload functionality",
-    "Creating new backend methods for batch product creation (use existing createProduct)",
-    "Adding batch edit or batch delete functionality for existing products",
-    "Implementing product templates or category-specific presets"
+    "Redesigning the entire account dashboard layout",
+    "Modifying Stripe API integration logic",
+    "Changing the admin role verification system"
   ],
   "imageRequirements": {
     "required": [],

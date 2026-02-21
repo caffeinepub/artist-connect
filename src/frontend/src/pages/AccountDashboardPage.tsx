@@ -1,22 +1,24 @@
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useIsCallerAdmin } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Package, CreditCard, User } from 'lucide-react';
+import { AlertCircle, Package, CreditCard, User, Settings } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 export default function AccountDashboardPage() {
     const { identity, isInitializing } = useInternetIdentity();
+    const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
 
     const isAuthenticated = !!identity;
     const principalId = identity?.getPrincipal().toString() || '';
 
-    if (isInitializing) {
+    if (isInitializing || isAdminLoading) {
         return (
             <div className="container py-12 max-w-6xl">
                 <Skeleton className="h-12 w-64 mb-8" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[1, 2].map((i) => (
+                    {[1, 2, 3].map((i) => (
                         <Card key={i}>
                             <CardHeader>
                                 <Skeleton className="h-8 w-48" />
@@ -121,7 +123,64 @@ export default function AccountDashboardPage() {
                         </CardContent>
                     </Card>
                 </Link>
+
+                {isAdmin ? (
+                    <Link to="/admin/stripe-settings" className="group">
+                        <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
+                            <CardHeader>
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                                        <Settings className="h-6 w-6 text-primary" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="font-display text-2xl">Stripe Settings</CardTitle>
+                                        <CardDescription className="mt-1">
+                                            Configure payment processing
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    Manage Stripe API keys, webhooks, and payment configuration for all products and services.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                ) : (
+                    <Card className="h-full opacity-60">
+                        <CardHeader>
+                            <div className="flex items-center space-x-3">
+                                <div className="p-3 bg-muted rounded-lg">
+                                    <Settings className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <div>
+                                    <CardTitle className="font-display text-2xl">Stripe Settings</CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Admin access required
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">
+                                Stripe payment configuration is only accessible to administrators. Contact an admin for access.
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
+
+            {!isAdmin && (
+                <div className="mt-6">
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            Need admin access? Visit the <Link to="/admin-setup" className="font-medium underline">Admin Setup</Link> page to grant yourself admin privileges.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            )}
         </div>
     );
 }

@@ -685,6 +685,7 @@ export function useGetStripeStoreConfig() {
       return actor.getStripeStoreConfig();
     },
     enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
@@ -743,19 +744,6 @@ export function useIsCallerAdmin() {
   });
 }
 
-export function useGetCallerUserRole() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<UserRole>({
-    queryKey: ['userRole'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserRole();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useAssignUserRole() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -768,7 +756,6 @@ export function useAssignUserRole() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artists'] });
       queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['userRole'] });
     },
   });
 }
@@ -778,13 +765,12 @@ export function useAssignAdminPrivileges() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (adminPrincipal: Principal) => {
+    mutationFn: async (_adminPrincipal: Principal) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.assignAdminPrivileges(adminPrincipal);
+      return actor.grantAdminPrivileges();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['userRole'] });
       queryClient.invalidateQueries({ queryKey: ['artists'] });
     },
   });

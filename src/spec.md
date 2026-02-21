@@ -1,13 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Add batch upload functionality to product management that allows users to upload multiple product images at once, edit preset details for each item, and create all products in a single operation.
+**Goal:** Make Stripe settings accessible from the user panel and grant admin access to the current user on the live deployment.
 
 **Planned changes:**
-- Add batch upload interface in ProductManagementPage with multi-file selection support
-- Display each uploaded image as an editable product entry with preset name, description, and price fields
-- Generate default values for product fields that users can modify before saving
-- Implement batch product creation that calls the backend createProduct method for each item
-- Add progress feedback and toast notifications showing success/error status for each product creation
+- Add a Stripe Settings/Payment Settings navigation card to the AccountDashboardPage that links to the payment settings page
+- Grant admin privileges to the current authenticated user on the live production deployment
 
-**User-visible outcome:** Authenticated users can select multiple product images at once in product management, edit preset details for each item (name, description, price), and create all products with a single action, receiving feedback on the success or failure of each creation.
+**User-visible outcome:** Users will see a Stripe Settings card in their account dashboard that navigates to payment settings. The current user will have admin access to view and manage Stripe configuration on the live site.

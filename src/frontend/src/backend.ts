@@ -316,7 +316,6 @@ export interface backendInterface {
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addPortfolioImage(blob: ExternalBlob): Promise<void>;
-    assignAdminPrivileges(adminPrincipal: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bookService(request: BookServiceRequest): Promise<void>;
     calculateTimeRange(arg0: CalculateTimeRangeRequest): Promise<void>;
@@ -361,6 +360,7 @@ export interface backendInterface {
     getStoreProductConfig(): Promise<StoreProductConfig>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getStripeStoreConfig(): Promise<StripeStoreConfig>;
+    grantAdminPrivileges(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
     searchServicesByCategory(category: string): Promise<SearchServicesByCategoryResponse>;
@@ -489,20 +489,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addPortfolioImage(await to_candid_ExternalBlob_n8(this._uploadFile, this._downloadFile, arg0));
-            return result;
-        }
-    }
-    async assignAdminPrivileges(arg0: Principal): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.assignAdminPrivileges(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.assignAdminPrivileges(arg0);
             return result;
         }
     }
@@ -1119,6 +1105,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getStripeStoreConfig();
+            return result;
+        }
+    }
+    async grantAdminPrivileges(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.grantAdminPrivileges();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.grantAdminPrivileges();
             return result;
         }
     }

@@ -243,7 +243,6 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addPortfolioImage' : IDL.Func([ExternalBlob], [], []),
-  'assignAdminPrivileges' : IDL.Func([IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'bookService' : IDL.Func([BookServiceRequest], [], []),
   'calculateTimeRange' : IDL.Func([CalculateTimeRangeRequest], [], []),
@@ -328,6 +327,7 @@ export const idlService = IDL.Service({
   'getStoreProductConfig' : IDL.Func([], [StoreProductConfig], ['query']),
   'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
   'getStripeStoreConfig' : IDL.Func([], [StripeStoreConfig], ['query']),
+  'grantAdminPrivileges' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
   'searchServicesByCategory' : IDL.Func(
@@ -609,7 +609,6 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addPortfolioImage' : IDL.Func([ExternalBlob], [], []),
-    'assignAdminPrivileges' : IDL.Func([IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'bookService' : IDL.Func([BookServiceRequest], [], []),
     'calculateTimeRange' : IDL.Func([CalculateTimeRangeRequest], [], []),
@@ -709,6 +708,7 @@ export const idlFactory = ({ IDL }) => {
     'getStoreProductConfig' : IDL.Func([], [StoreProductConfig], ['query']),
     'getStripeSessionStatus' : IDL.Func([IDL.Text], [StripeSessionStatus], []),
     'getStripeStoreConfig' : IDL.Func([], [StripeStoreConfig], ['query']),
+    'grantAdminPrivileges' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isStripeConfigured' : IDL.Func([], [IDL.Bool], ['query']),
     'searchServicesByCategory' : IDL.Func(
