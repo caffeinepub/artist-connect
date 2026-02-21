@@ -1,22 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "E-commerce platform with product management and batch upload functionality",
-  "architectural_notes": [
-    "Product management system with batch image upload capability",
-    "Stripe payment integration configured"
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Stripe settings not visible in user panel",
-    "Admin access needs to be granted on live page"
+    "Payment configuration not visible on live page for admin users"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-display-stripe-settings-section-in-the-user-account-dashboard-accountdashboardpage-with-a-navigation-card-that-links-to-the-payment-settings-page-similar-to-the-existing-product-management-card",
-      "title": "Display Stripe settings section in the user account dashboard (AccountDashboardPage) with a navigation card that links to the payment settings page, similar to the existing Product Management card",
+      "id": "feature-verify-that-payment-configuration-stripe-settings-is-visible-in-the-account-dashboard-for-users-with-admin-privileges",
+      "title": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
       "reqIds": [
-        "REQ-9"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -24,20 +20,14 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Batch upload for products with editable name, description, and price",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Grant admin privileges to the current authenticated user on the live production deployment so they can access admin features including Stripe configuration",
+      "summary": "Ensure the current authenticated user's principal is granted admin privileges in the backend access control system",
       "reqIds": [
-        "REQ-10"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Show Stripe settings in user panel and grant admin access",
+  "projectName": "Grant admin privileges to current user",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

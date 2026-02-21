@@ -1,21 +1,26 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Show Stripe settings in user panel and grant admin access",
+  "title": "Grant admin privileges to current user - Frontend verification",
   "requirements": [
     {
-      "id": "REQ-9",
-      "summary": "Display Stripe settings section in the user account dashboard with a navigation card that links to the payment settings page",
+      "id": "REQ-2",
+      "summary": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
       "acceptanceCriteria": [
-        "User account dashboard shows a Stripe Settings or Payment Settings card alongside the Product Management card",
-        "Clicking the card navigates to the payment settings page",
-        "Card is visible to all authenticated users"
+        "Admin users can see the Stripe settings navigation card in the account dashboard",
+        "The Stripe settings card links correctly to the payment settings page",
+        "Non-admin users do not see admin-only configuration options"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AccountDashboardPage.tsx",
           "operation": "modify",
-          "description": "Add a Stripe Settings navigation card alongside the existing Product Management card. The card should have a title 'Payment Settings', description 'Manage your Stripe payment configuration', an icon (use Banknote or CreditCard from lucide-react), and navigate to '/payment-settings' when clicked. Use the same card styling as the Product Management card for consistency. Ensure the card is visible to all authenticated users without role restrictions."
+          "description": "Add admin permission check using the isCallerAdmin backend method and conditionally render a Stripe Settings navigation card for admin users. The card should link to the existing /admin/stripe-settings route. Include proper loading states while checking admin status. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a useIsCallerAdmin query hook that calls the backend's isCallerAdmin method. This hook should be enabled only when the actor is available and user is authenticated. Follow the existing query hook patterns in the file for consistency."
         }
       ]
     }

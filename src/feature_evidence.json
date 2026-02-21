@@ -2,9 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-display-stripe-settings-section-in-the-user-account-dashboard-accountdashboardpage-with-a-navigation-card-that-links-to-the-payment-settings-page-similar-to-the-existing-product-management-card",
-      "featureTitle": "Display Stripe settings section in the user account dashboard (AccountDashboardPage) with a navigation card that links to the payment settings page, similar to the existing Product Management card",
+      "featureId": "feature-verify-that-payment-configuration-stripe-settings-is-visible-in-the-account-dashboard-for-users-with-admin-privileges",
+      "featureTitle": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
       "files": [
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/AccountDashboardPage.tsx"
       ],
       "components": [
@@ -19,7 +20,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-9"
+        "REQ-2"
       ],
       "confidence": "high"
     }

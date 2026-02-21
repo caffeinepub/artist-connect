@@ -1,54 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Show Stripe settings in user panel and grant admin access",
+  "title": "Grant admin privileges to current user",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-9",
-      "text": "Display Stripe settings section in the user account dashboard (AccountDashboardPage) with a navigation card that links to the payment settings page, similar to the existing Product Management card",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "stripe settings are not showing in user pannel"
-        ]
-      },
-      "acceptanceCriteria": [
-        "User account dashboard shows a Stripe Settings or Payment Settings card alongside the Product Management card",
-        "Clicking the card navigates to the payment settings page",
-        "Card is visible to all authenticated users"
-      ]
-    },
-    {
-      "id": "REQ-10",
-      "text": "Grant admin privileges to the current authenticated user on the live production deployment so they can access admin features including Stripe configuration",
+      "id": "REQ-1",
+      "text": "Ensure the current authenticated user's principal is granted admin privileges in the backend access control system",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-final"
         ],
         "quotes": [
-          "make me admin in live page"
+          "make me admin"
         ]
       },
       "acceptanceCriteria": [
-        "The current user's principal is added to the admin role in the backend",
-        "User can access admin pages including AdminStripeSettingsPage after being granted admin access",
-        "Admin role persists across sessions"
+        "The authenticated user's principal is added to the admin list in the backend",
+        "Admin privileges are persisted across canister upgrades",
+        "The user can access all admin-restricted pages after privileges are granted"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "make me admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin users can see the Stripe settings navigation card in the account dashboard",
+        "The Stripe settings card links correctly to the payment settings page",
+        "Non-admin users do not see admin-only configuration options"
       ]
     }
   ],
   "constraints": [
-    "Do not modify existing admin assignment logic in AdminSetupPage",
-    "Preserve existing payment settings page functionality",
-    "Maintain authentication checks for admin-only pages"
+    "Use the existing assignAdminPrivileges backend method",
+    "Do not modify the Internet Identity authentication flow",
+    "Maintain the single-actor backend architecture"
   ],
   "nonGoals": [
-    "Redesigning the entire account dashboard layout",
-    "Modifying Stripe API integration logic",
-    "Changing the admin role verification system"
+    "Creating a new admin role system",
+    "Implementing multi-factor authentication",
+    "Building a role-based permission hierarchy beyond admin/non-admin"
   ],
   "imageRequirements": {
     "required": [],

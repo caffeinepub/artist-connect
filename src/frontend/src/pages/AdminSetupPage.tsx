@@ -1,154 +1,157 @@
-import React from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useAssignAdminPrivileges } from '../hooks/useQueries';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2, Shield, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGrantAdminPrivileges, useIsCallerAdmin } from '../hooks/useQueries';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminSetupPage() {
-  const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
-  const assignAdminPrivileges = useAssignAdminPrivileges();
+  const { identity } = useInternetIdentity();
+  const { data: isAdmin, refetch: refetchAdminStatus } = useIsCallerAdmin();
+  const grantAdminMutation = useGrantAdminPrivileges();
+  const [setupComplete, setSetupComplete] = useState(false);
 
-  const principalId = identity?.getPrincipal().toString();
+  const isAuthenticated = !!identity;
+  const principalId = identity?.getPrincipal().toString() || '';
+
+  useEffect(() => {
+    if (isAdmin) {
+      const timer = setTimeout(() => {
+        navigate({ to: '/account/dashboard' });
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isAdmin, navigate]);
 
   const handleGrantAdmin = async () => {
-    if (!identity) {
+    if (!isAuthenticated) {
       toast.error('Please log in first');
       return;
     }
 
     try {
-      await assignAdminPrivileges.mutateAsync(identity.getPrincipal());
+      await grantAdminMutation.mutateAsync();
+      await refetchAdminStatus();
+      setSetupComplete(true);
       toast.success('Admin privileges granted successfully!');
       
-      // Wait a moment for the backend to update, then redirect
+      // Redirect to account dashboard after a short delay
       setTimeout(() => {
-        navigate({ to: '/admin/users' });
-      }, 1500);
+        navigate({ to: '/account/dashboard' });
+      }, 2000);
     } catch (error: any) {
       console.error('Failed to grant admin privileges:', error);
       toast.error(error.message || 'Failed to grant admin privileges');
     }
   };
 
-  if (isInitializing) {
+  if (!isAuthenticated) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">Loading...</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please log in to access admin setup.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  if (!identity) {
+  if (isAdmin) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Authentication Required</AlertTitle>
-            <AlertDescription>
-              Please log in with Internet Identity to grant admin privileges.
-            </AlertDescription>
-          </Alert>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Alert>
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>
+            You already have admin privileges. Redirecting to dashboard...
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              <CardTitle>Admin Setup</CardTitle>
-            </div>
-            <CardDescription>
-              Grant admin privileges to your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Your Principal ID</h3>
-              <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
-                {principalId}
-              </div>
-            </div>
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Admin Setup</h1>
+        <p className="text-muted-foreground">Grant yourself admin privileges to manage the marketplace</p>
+      </div>
 
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-lg">
+              <Shield className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <CardTitle>Grant Admin Privileges</CardTitle>
+              <CardDescription>Become an administrator of this marketplace</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {setupComplete ? (
             <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Important</AlertTitle>
+              <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                This will grant full admin privileges to your account. You will be able to:
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Manage all users and their roles</li>
-                  <li>Configure site settings</li>
-                  <li>Manage store configuration</li>
-                  <li>Configure Stripe payment settings</li>
-                </ul>
+                Admin privileges granted successfully! Redirecting to dashboard...
               </AlertDescription>
             </Alert>
+          ) : (
+            <>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Your Principal ID</h3>
+                  <code className="text-sm bg-muted px-3 py-2 rounded block break-all">
+                    {principalId}
+                  </code>
+                </div>
 
-            <Button
-              onClick={handleGrantAdmin}
-              disabled={assignAdminPrivileges.isPending}
-              className="w-full"
-              size="lg"
-            >
-              {assignAdminPrivileges.isPending ? (
-                'Granting Admin Privileges...'
-              ) : (
-                <>
-                  <Shield className="mr-2 h-4 w-4" />
-                  Grant Admin Privileges
-                </>
-              )}
-            </Button>
+                <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    What you'll be able to do as admin:
+                  </h3>
+                  <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                    <li>Configure Stripe payment integration</li>
+                    <li>Manage store settings and product categories</li>
+                    <li>View and manage all marketplace content</li>
+                    <li>Access admin-only features and settings</li>
+                  </ul>
+                </div>
 
-            {assignAdminPrivileges.isSuccess && (
-              <Alert>
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Success!</AlertTitle>
-                <AlertDescription>
-                  Admin privileges have been granted. Redirecting to admin panel...
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    This action will grant full administrative access to your account. Make sure you're logged in with the correct identity.
+                  </AlertDescription>
+                </Alert>
+              </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Verification Steps</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-              <li>Click the "Grant Admin Privileges" button above</li>
-              <li>Wait for the confirmation message</li>
-              <li>Check that the admin dropdown menu appears in the header</li>
-              <li>Navigate to each admin page to verify access:
-                <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
-                  <li>User Management</li>
-                  <li>Site Settings</li>
-                  <li>Store Settings</li>
-                  <li>Stripe Settings</li>
-                </ul>
-              </li>
-            </ol>
-          </CardContent>
-        </Card>
-      </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleGrantAdmin}
+                  disabled={grantAdminMutation.isPending}
+                  className="flex-1"
+                >
+                  {grantAdminMutation.isPending ? 'Granting Access...' : 'Grant Admin Access'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate({ to: '/account/dashboard' })}
+                  disabled={grantAdminMutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

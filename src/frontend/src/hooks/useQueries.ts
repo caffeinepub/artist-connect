@@ -8,14 +8,16 @@ import type {
   Booking,
   Product,
   Music,
-  StoreProductConfig,
-  PricingRule,
-  StripeStoreConfig,
   Service,
   CreateServiceRequest,
   UpdateServiceRequest,
-  UserRole,
+  DeleteServiceRequest,
+  BookServiceRequest,
   ShoppingItem,
+  StoreProductConfig,
+  PricingRule,
+  StripeStoreConfig,
+  UserRole,
 } from '../backend';
 import { ExternalBlob } from '../backend';
 import { Principal } from '@dfinity/principal';
@@ -24,7 +26,7 @@ import { Principal } from '@dfinity/principal';
 export function useGetAllArtists() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<ArtistProfile[]>({
+  return useQuery({
     queryKey: ['artists'],
     queryFn: async () => {
       if (!actor) return [];
@@ -38,10 +40,10 @@ export function useGetAllArtists() {
 export function useGetArtistById(id: string) {
   const { actor, isFetching } = useActor();
 
-  return useQuery<ArtistProfile | null>({
+  return useQuery({
     queryKey: ['artist', id],
     queryFn: async () => {
-      if (!actor || !id) return null;
+      if (!actor) throw new Error('Actor not available');
       const response = await actor.getArtistById(id);
       return response.profile;
     },
@@ -83,7 +85,7 @@ export function useAddPortfolioImage() {
 export function useGetAllJobOfferings() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<JobOffering[]>({
+  return useQuery({
     queryKey: ['jobs'],
     queryFn: async () => {
       if (!actor) return [];
@@ -142,7 +144,7 @@ export function useDeleteJobOffering() {
 export function useGetAllGigs() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Gig[]>({
+  return useQuery({
     queryKey: ['gigs'],
     queryFn: async () => {
       if (!actor) return [];
@@ -201,7 +203,7 @@ export function useDeleteGig() {
 export function useGetAllBookings() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Booking[]>({
+  return useQuery({
     queryKey: ['bookings'],
     queryFn: async () => {
       if (!actor) return [];
@@ -256,30 +258,30 @@ export function useDeleteBooking() {
   });
 }
 
-export function useGetBookingsByArtist(artistId: Principal) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Booking[]>({
-    queryKey: ['bookings', 'artist', artistId.toString()],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.findBookingsByArtist(artistId);
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 // Products
 export function useGetAllProducts() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Product[]>({
+  return useQuery({
     queryKey: ['products'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllProducts();
     },
     enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetProductsByArtist(artistId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['products', 'artist', artistId],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.findProductsByArtist(Principal.fromText(artistId));
+    },
+    enabled: !!actor && !isFetching && !!artistId,
   });
 }
 
@@ -421,26 +423,13 @@ export function useBulkCreateProducts() {
 export function useGetAllMusic() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Music[]>({
+  return useQuery({
     queryKey: ['music'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllMusic();
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetMusicById(id: string) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Music | null>({
-    queryKey: ['music', id],
-    queryFn: async () => {
-      if (!actor || !id) return null;
-      return actor.getMusicById(id);
-    },
-    enabled: !!actor && !isFetching && !!id,
   });
 }
 
@@ -519,7 +508,7 @@ export function useDeleteMusic() {
 export function useGetAllServices() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<Service[]>({
+  return useQuery({
     queryKey: ['services'],
     queryFn: async () => {
       if (!actor) return [];
@@ -570,7 +559,13 @@ export function useUpdateService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, request }: { id: bigint; request: UpdateServiceRequest }) => {
+    mutationFn: async ({
+      id,
+      request,
+    }: {
+      id: bigint;
+      request: UpdateServiceRequest;
+    }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateService(id, request);
     },
@@ -585,12 +580,47 @@ export function useDeleteService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: bigint) => {
+    mutationFn: async (request: DeleteServiceRequest) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteService({ id });
+      return actor.deleteService(request);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
+    },
+  });
+}
+
+export function useBookService() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: BookServiceRequest) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.bookService(request);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
+  });
+}
+
+// Stripe Checkout
+export function useCreateCheckoutSession() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (items: ShoppingItem[]): Promise<{ id: string; url: string }> => {
+      if (!actor) throw new Error('Actor not available');
+      const baseUrl = `${window.location.protocol}//${window.location.host}`;
+      const successUrl = `${baseUrl}/payment-success`;
+      const cancelUrl = `${baseUrl}/payment-failure`;
+      const result = await actor.createCheckoutSession(items, successUrl, cancelUrl);
+      const session = JSON.parse(result) as { id: string; url: string };
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
     },
   });
 }
@@ -599,7 +629,7 @@ export function useDeleteService() {
 export function useGetStoreProductConfig() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<StoreProductConfig>({
+  return useQuery({
     queryKey: ['storeConfig'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
@@ -661,31 +691,17 @@ export function useSetRequireApprovalFor() {
   });
 }
 
-// Stripe Configuration
+// Stripe Store Configuration
 export function useIsStripeConfigured() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<boolean>({
+  return useQuery({
     queryKey: ['stripeConfigured'],
     queryFn: async () => {
       if (!actor) return false;
       return actor.isStripeConfigured();
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetStripeStoreConfig() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<StripeStoreConfig>({
-    queryKey: ['stripeStoreConfig'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getStripeStoreConfig();
-    },
-    enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
@@ -699,34 +715,21 @@ export function useSetStripeStoreConfig() {
       return actor.setStripeStoreConfig(config);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stripeStoreConfig'] });
       queryClient.invalidateQueries({ queryKey: ['stripeConfigured'] });
     },
   });
 }
 
-// Stripe Checkout
-export type CheckoutSession = {
-  id: string;
-  url: string;
-};
+export function useGetStripeStoreConfig() {
+  const { actor, isFetching } = useActor();
 
-export function useCreateCheckoutSession() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (items: ShoppingItem[]): Promise<CheckoutSession> => {
+  return useQuery({
+    queryKey: ['stripeStoreConfig'],
+    queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      const baseUrl = `${window.location.protocol}//${window.location.host}`;
-      const successUrl = `${baseUrl}/payment-success`;
-      const cancelUrl = `${baseUrl}/payment-failure`;
-      const result = await actor.createCheckoutSession(items, successUrl, cancelUrl);
-      const session = JSON.parse(result) as CheckoutSession;
-      if (!session?.url) {
-        throw new Error('Stripe session missing url');
-      }
-      return session;
+      return actor.getStripeStoreConfig();
     },
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -734,13 +737,14 @@ export function useCreateCheckoutSession() {
 export function useIsCallerAdmin() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<boolean>({
-    queryKey: ['isAdmin'],
+  return useQuery({
+    queryKey: ['isCallerAdmin'],
     queryFn: async () => {
       if (!actor) return false;
       return actor.isCallerAdmin();
     },
     enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
@@ -754,24 +758,22 @@ export function useAssignUserRole() {
       return actor.assignCallerUserRole(user, role);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['artists'] });
-      queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
     },
   });
 }
 
-export function useAssignAdminPrivileges() {
+export function useGrantAdminPrivileges() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_adminPrincipal: Principal) => {
+    mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.grantAdminPrivileges();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['artists'] });
+      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
     },
   });
 }
