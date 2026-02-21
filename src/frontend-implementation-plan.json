@@ -1,26 +1,64 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Grant admin privileges to current user - Frontend verification",
+  "title": "Create basic admin dashboard structure",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
+      "id": "REQ-1",
+      "summary": "Create a basic admin dashboard page structure that displays a welcome message and placeholder sections for future admin features",
       "acceptanceCriteria": [
-        "Admin users can see the Stripe settings navigation card in the account dashboard",
-        "The Stripe settings card links correctly to the payment settings page",
-        "Non-admin users do not see admin-only configuration options"
+        "AdminDashboardPage.tsx exists and renders successfully",
+        "Page displays a clear admin dashboard title",
+        "Page includes placeholder sections or cards for future features (Stripe settings, user management, revenue analytics)",
+        "Page is accessible via the existing admin route configuration"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AccountDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Add admin permission check using the isCallerAdmin backend method and conditionally render a Stripe Settings navigation card for admin users. The card should link to the existing /admin/stripe-settings route. Include proper loading states while checking admin status. Verify the authorization component's usage instructions before implementing."
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "create",
+          "description": "Create admin dashboard page component with welcome message, admin title, and placeholder cards for Stripe settings, user management, and revenue analytics sections. Include navigation links to existing admin pages (AdminStripeSettingsPage, AdminUserManagementPage, AdminRevenueDashboardPage). Use shadcn/ui Card components for the placeholder sections."
         },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add route registration for AdminDashboardPage at path '/admin/dashboard'. Import the new AdminDashboardPage component and wire it into the existing admin route structure. Ensure it appears in the admin section of the router configuration alongside other admin routes like '/admin/branding', '/admin/revenue', etc."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Update the admin dropdown menu in the navigation header to include a link to the new admin dashboard at '/admin/dashboard'. Position it as the first item in the admin menu section for easy access."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Create a React Query hook useIsAdmin that calls the backend isAdmin method and returns the admin status",
+      "acceptanceCriteria": [
+        "Hook successfully fetches admin status from backend",
+        "Hook returns a boolean indicating if the current user is an admin",
+        "Hook handles loading and error states appropriately"
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a useIsCallerAdmin query hook that calls the backend's isCallerAdmin method. This hook should be enabled only when the actor is available and user is authenticated. Follow the existing query hook patterns in the file for consistency."
+          "description": "Add useIsAdmin query hook that calls actor.isAdmin() and returns the boolean admin status. Configure the query with queryKey ['isAdmin'], enable it only when actor is available, handle loading and error states, and set appropriate staleTime. Follow the existing pattern used by other query hooks in this file like useGetCallerUserRole."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update the AdminDashboardPage to use the useIsAdmin hook and display an access denied message for non-admin users while showing the dashboard content only for the admin principal",
+      "acceptanceCriteria": [
+        "Non-admin users see a clear access denied message when visiting the admin dashboard",
+        "The admin principal (gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe) can view the full dashboard",
+        "Access control check happens before rendering dashboard content"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Import and use the useIsAdmin hook to check admin status. Display loading state while checking admin status. If isAdmin returns false, render an access denied message using shadcn/ui Alert component with a clear message that the page is restricted to administrators. Only render the dashboard content (welcome message and placeholder cards) when isAdmin returns true. Ensure the access control check happens before any dashboard content is displayed."
         }
       ]
     }

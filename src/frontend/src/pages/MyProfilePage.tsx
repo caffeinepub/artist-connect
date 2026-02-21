@@ -1,217 +1,222 @@
+import React from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetArtistById, useCreateArtistProfile, useAddPortfolioImage } from '../hooks/useQueries';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useGetArtistById, useGetArtistRevenue, useGetPaymentTransactionHistory } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { ExternalBlob } from '../backend';
-import { Upload, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2, Mail, DollarSign, TrendingUp } from 'lucide-react';
 
 export default function MyProfilePage() {
-    const { identity } = useInternetIdentity();
-    const principalId = identity?.getPrincipal().toString() || '';
-    const { data: artist, isLoading } = useGetArtistById(principalId);
-    const createProfile = useCreateArtistProfile();
-    const addImage = useAddPortfolioImage();
+  const { identity } = useInternetIdentity();
+  const principalId = identity?.getPrincipal().toString() || '';
+  
+  const { data: artist, isLoading: artistLoading } = useGetArtistById(principalId);
+  const { data: revenue, isLoading: revenueLoading } = useGetArtistRevenue(principalId);
+  const { data: transactions = [], isLoading: transactionsLoading } = useGetPaymentTransactionHistory(principalId);
 
-    const [bio, setBio] = useState('');
-    const [skills, setSkills] = useState('');
-    const [contactInfo, setContactInfo] = useState('');
-    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
-    const handleCreateProfile = async () => {
-        if (!bio.trim() || !contactInfo.trim()) {
-            toast.error('Please fill in all required fields');
-            return;
-        }
-
-        try {
-            await createProfile.mutateAsync({
-                bio: bio.trim(),
-                skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
-                contactInfo: contactInfo.trim()
-            });
-            toast.success('Profile created successfully!');
-            setBio('');
-            setSkills('');
-            setContactInfo('');
-        } catch (error) {
-            toast.error('Failed to create profile');
-            console.error(error);
-        }
-    };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
-            return;
-        }
-
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const blob = ExternalBlob.fromBytes(uint8Array).withUploadProgress((percentage) => {
-                setUploadProgress(percentage);
-            });
-
-            await addImage.mutateAsync(blob);
-            toast.success('Image uploaded successfully!');
-            setUploadProgress(null);
-        } catch (error) {
-            toast.error('Failed to upload image');
-            console.error(error);
-            setUploadProgress(null);
-        }
-    };
-
-    if (!identity) {
-        return (
-            <div className="container py-12">
-                <Card className="p-12 text-center">
-                    <h2 className="font-display text-3xl font-bold mb-4">Login Required</h2>
-                    <p className="text-muted-foreground">Please login to view and manage your profile.</p>
-                </Card>
-            </div>
-        );
-    }
-
-    if (isLoading) {
-        return (
-            <div className="container py-12 flex justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
+  if (!identity) {
     return (
-        <div className="container py-12 max-w-4xl">
-            <h1 className="font-display text-4xl md:text-5xl font-bold mb-8">My Artist Profile</h1>
-
-            {artist ? (
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-display">Profile Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label>Bio</Label>
-                                <p className="text-muted-foreground mt-1">{artist.bio}</p>
-                            </div>
-                            <div>
-                                <Label>Skills</Label>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {artist.skills.map((skill, idx) => (
-                                        <span
-                                            key={idx}
-                                            className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full"
-                                        >
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <Label>Contact</Label>
-                                <p className="text-muted-foreground mt-1">{artist.contactInfo}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-display">Portfolio Images</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {artist.portfolioImages.length > 0 && (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {artist.portfolioImages.map((image, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="aspect-square rounded-lg overflow-hidden bg-muted"
-                                        >
-                                            <img
-                                                src={image.getDirectURL()}
-                                                alt={`Portfolio ${idx + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <div>
-                                <Label htmlFor="image-upload" className="cursor-pointer">
-                                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-                                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                                        <p className="text-sm text-muted-foreground">
-                                            {uploadProgress !== null
-                                                ? `Uploading... ${uploadProgress}%`
-                                                : 'Click to upload portfolio image'}
-                                        </p>
-                                    </div>
-                                </Label>
-                                <Input
-                                    id="image-upload"
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                    disabled={uploadProgress !== null}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            ) : (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-display">Create Your Artist Profile</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="bio">Bio *</Label>
-                            <Textarea
-                                id="bio"
-                                placeholder="Tell us about yourself and your artistic journey..."
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                                rows={4}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="skills">Skills (comma-separated) *</Label>
-                            <Input
-                                id="skills"
-                                placeholder="e.g., Painting, Digital Art, Illustration"
-                                value={skills}
-                                onChange={(e) => setSkills(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="contact">Contact Information *</Label>
-                            <Input
-                                id="contact"
-                                placeholder="Email or preferred contact method"
-                                value={contactInfo}
-                                onChange={(e) => setContactInfo(e.target.value)}
-                            />
-                        </div>
-                        <Button
-                            onClick={handleCreateProfile}
-                            disabled={createProfile.isPending}
-                            className="w-full"
-                        >
-                            {createProfile.isPending ? 'Creating...' : 'Create Profile'}
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>My Profile</CardTitle>
+            <CardDescription>Please log in to view your profile</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     );
+  }
+
+  if (artistLoading || revenueLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!artist) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Not Found</CardTitle>
+            <CardDescription>Please create an artist profile to continue</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  const donations = transactions.filter(
+    (t) => t.transactionType === 'donation'
+  );
+  const sales = transactions.filter(
+    (t) => t.transactionType === 'productSale'
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">My Profile</h1>
+
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${revenue ? (Number(revenue.totalRevenue) / 100).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">From sales and donations</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${revenue ? (Number(revenue.pendingRevenue) / 100).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Awaiting payout</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Paid Out</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${revenue ? (Number(revenue.paidRevenue) / 100).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Total received</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2">Bio</h3>
+              <p className="text-muted-foreground whitespace-pre-wrap">{artist.bio}</p>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="font-semibold mb-2">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {artist.skills.map((skill, index) => (
+                  <Badge key={index} variant="secondary">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="font-semibold mb-2">Contact Information</h3>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <span>{artist.contactInfo}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Donations Received</CardTitle>
+            <CardDescription>Recent donations from supporters</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {transactionsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : donations.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No donations received yet</p>
+            ) : (
+              <div className="space-y-4">
+                {donations.slice(0, 5).map((donation) => (
+                  <div key={donation.id} className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium">Donation</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(Number(donation.timestamp) / 1000000).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">${(Number(donation.amount) / 100).toFixed(2)}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {transactions.length > 0 && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Transaction History</CardTitle>
+            <CardDescription>All your sales and donations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Product ID</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Your Share</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      {new Date(Number(transaction.timestamp) / 1000000).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          transaction.transactionType === 'donation'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {transaction.transactionType === 'donation'
+                          ? 'Donation'
+                          : 'Sale'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{transaction.productId}</TableCell>
+                    <TableCell className="text-right">${(Number(transaction.amount) / 100).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${(Number(transaction.artistShare) / 100).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 }

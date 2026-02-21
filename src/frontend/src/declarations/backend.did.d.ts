@@ -19,6 +19,12 @@ export interface ArtistProfile {
   'skills' : Array<string>,
 }
 export interface ArtistProfileResponse { 'profile' : ArtistProfile }
+export interface ArtistRevenue {
+  'paidRevenue' : bigint,
+  'artistId' : Principal,
+  'pendingRevenue' : bigint,
+  'totalRevenue' : bigint,
+}
 export interface BookServiceRequest {
   'date' : Time,
   'artistId' : Principal,
@@ -84,6 +90,24 @@ export interface Music {
   'price' : bigint,
   'uploadDate' : bigint,
 }
+export interface PaymentTransaction {
+  'id' : string,
+  'transactionType' : { 'productSale' : null } |
+    { 'donation' : null },
+  'platformFee' : bigint,
+  'artistId' : Principal,
+  'productId' : string,
+  'artistShare' : bigint,
+  'buyerId' : Principal,
+  'timestamp' : Time,
+  'amount' : bigint,
+}
+export interface PlatformRevenueMetrics {
+  'averageTransactionValue' : bigint,
+  'totalPlatformRevenue' : bigint,
+  'totalArtistPayouts' : bigint,
+  'totalTransactions' : bigint,
+}
 export interface PricingRule { 'maxPrice' : bigint, 'minPrice' : bigint }
 export interface Product {
   'id' : string,
@@ -114,6 +138,13 @@ export interface ShoppingItem {
   'priceInCents' : bigint,
   'productDescription' : string,
 }
+export interface SiteBranding {
+  'primaryColor' : string,
+  'description' : string,
+  'siteName' : string,
+  'logoUrl' : string,
+  'secondaryColor' : string,
+}
 export interface StoreProductConfig {
   'productCategoryLimit' : bigint,
   'lowStockThreshold' : bigint,
@@ -121,6 +152,7 @@ export interface StoreProductConfig {
   'productCategories' : Array<string>,
   'freeShippingThreshold' : bigint,
   'productTags' : Array<string>,
+  'artistRevenueSharePercentage' : bigint,
   'pricingRules' : PricingRule,
   'filterOptions' : Array<StoreProductFilter>,
   'inventoryTrackingEnabled' : boolean,
@@ -167,6 +199,12 @@ export interface TransformationOutput {
   'body' : Uint8Array,
   'headers' : Array<http_header>,
 }
+export interface UpdateArtistProfileRequest {
+  'bio' : string,
+  'contactInfo' : string,
+  'portfolioImages' : Array<ExternalBlob>,
+  'skills' : Array<string>,
+}
 export interface UpdateServiceRequest {
   'duration' : bigint,
   'name' : string,
@@ -174,6 +212,13 @@ export interface UpdateServiceRequest {
   'category' : [] | [string],
   'price' : bigint,
 }
+export interface UserInfo {
+  'principal' : Principal,
+  'role' : UserRole,
+  'hasArtistProfile' : boolean,
+  'totalRevenue' : bigint,
+}
+export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -215,6 +260,7 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'bookService' : ActorMethod<[BookServiceRequest], undefined>,
   'calculateTimeRange' : ActorMethod<[CalculateTimeRangeRequest], undefined>,
+  'checkoutAndPayProduct' : ActorMethod<[string, string, string], string>,
   'createArtistProfile' : ActorMethod<
     [CreateArtistProfileRequest],
     CreateArtistProfileResponse
@@ -242,6 +288,7 @@ export interface _SERVICE {
   'deleteMusic' : ActorMethod<[string], undefined>,
   'deleteProduct' : ActorMethod<[string], undefined>,
   'deleteService' : ActorMethod<[DeleteServiceRequest], undefined>,
+  'donateToArtist' : ActorMethod<[Principal, bigint, string, string], string>,
   'findBookingsByArtist' : ActorMethod<[Principal], Array<Booking>>,
   'findBookingsByDate' : ActorMethod<[], Array<Booking>>,
   'findGigsByDeliveryTime' : ActorMethod<[], Array<Gig>>,
@@ -252,33 +299,49 @@ export interface _SERVICE {
   'findMusicByPrice' : ActorMethod<[], Array<Music>>,
   'findProductsByArtist' : ActorMethod<[Principal], Array<Product>>,
   'findProductsByPrice' : ActorMethod<[], Array<Product>>,
+  'getAllArtistRevenues' : ActorMethod<[], Array<ArtistRevenue>>,
   'getAllArtists' : ActorMethod<[], AllArtistProfilesResponse>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllGigs' : ActorMethod<[], Array<Gig>>,
   'getAllJobOfferings' : ActorMethod<[], Array<JobOffering>>,
   'getAllMusic' : ActorMethod<[], Array<Music>>,
+  'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getAllServices' : ActorMethod<[], GetAllServicesResponse>,
+  'getAllUsers' : ActorMethod<[], Array<UserInfo>>,
   'getArtistById' : ActorMethod<[string], ArtistProfileResponse>,
+  'getArtistRevenue' : ActorMethod<[Principal], ArtistRevenue>,
   'getAvailableTimeSlots' : ActorMethod<[Range], GetAvailableTimeSlotsResponse>,
   'getBookingsByCode' : ActorMethod<[string], GetBookingsByCodeResponse>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getMusicById' : ActorMethod<[string], [] | [Music]>,
+  'getPaymentTransactionHistory' : ActorMethod<
+    [Principal],
+    Array<PaymentTransaction>
+  >,
+  'getPlatformRevenueMetrics' : ActorMethod<[], PlatformRevenueMetrics>,
   'getServicesByArtist' : ActorMethod<[Principal], GetServicesByArtistResponse>,
+  'getSiteBranding' : ActorMethod<[], SiteBranding>,
   'getStoreProductConfig' : ActorMethod<[], StoreProductConfig>,
   'getStripeSessionStatus' : ActorMethod<[string], StripeSessionStatus>,
   'getStripeStoreConfig' : ActorMethod<[], StripeStoreConfig>,
-  'grantAdminPrivileges' : ActorMethod<[], undefined>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isAdmin' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isStripeConfigured' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchServicesByCategory' : ActorMethod<
     [string],
     SearchServicesByCategoryResponse
   >,
+  'setArtistRevenueSharePercentage' : ActorMethod<[bigint], undefined>,
+  'setPlatformCommissionRate' : ActorMethod<[bigint], undefined>,
   'setRequireApprovalFor' : ActorMethod<[boolean, boolean, boolean], undefined>,
   'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
   'setStripeStoreConfig' : ActorMethod<[StripeStoreConfig], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
+  'updateArtistProfile' : ActorMethod<[UpdateArtistProfileRequest], undefined>,
   'updateBooking' : ActorMethod<[Booking], undefined>,
   'updateGig' : ActorMethod<[Gig], undefined>,
   'updateJobOffering' : ActorMethod<[JobOffering], undefined>,
@@ -291,6 +354,7 @@ export interface _SERVICE {
     undefined
   >,
   'updateService' : ActorMethod<[bigint, UpdateServiceRequest], undefined>,
+  'updateSiteBranding' : ActorMethod<[SiteBranding], undefined>,
   'updateStoreProductConfig' : ActorMethod<
     [
       bigint,
@@ -298,6 +362,7 @@ export interface _SERVICE {
       bigint,
       bigint,
       bigint,
+      Array<StoreProductFilter>,
       PricingRule,
       Array<string>,
       Array<string>,

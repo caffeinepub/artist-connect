@@ -1,28 +1,46 @@
 import { useParams, Link } from '@tanstack/react-router';
-import { useGetAllProducts } from '../hooks/useQueries';
-import { useCart } from '../hooks/useCart';
+import { useGetAllProducts, useCheckoutProduct } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Loader2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProductDetailPage() {
     const { id } = useParams({ from: '/store/$id' });
     const { data: products, isLoading } = useGetAllProducts();
+    const { identity } = useInternetIdentity();
+    const checkoutProduct = useCheckoutProduct();
     const product = products?.find((p) => p.id === id);
-    const { addItem } = useCart();
 
-    const handleAddToCart = () => {
+    const handleBuyNow = async () => {
+        if (!identity) {
+            toast.error('Please log in to make a purchase');
+            return;
+        }
+
         if (!product) return;
-        addItem({
-            type: 'product',
-            id: product.id,
-            name: product.title,
-            description: product.description,
-            price: Number(product.price) / 100,
-            imageUrl: product.productImages[0]?.getDirectURL()
-        });
-        toast.success('Added to cart!');
+
+        const baseUrl = `${window.location.protocol}//${window.location.host}`;
+        const successUrl = `${baseUrl}/payment-success`;
+        const cancelUrl = `${baseUrl}/payment-failure`;
+
+        try {
+            const session = await checkoutProduct.mutateAsync({
+                productId: product.id,
+                successUrl,
+                cancelUrl,
+            });
+
+            if (!session?.url) {
+                throw new Error('Stripe session missing url');
+            }
+
+            window.location.href = session.url;
+        } catch (error) {
+            console.error('Checkout error:', error);
+            toast.error('Failed to start checkout. Please try again.');
+        }
     };
 
     if (isLoading) {
@@ -83,12 +101,23 @@ export default function ProductDetailPage() {
                         </div>
 
                         <div className="pt-6 border-t space-y-3">
-                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                Add to Cart
-                            </Button>
-                            <Button asChild size="lg" variant="outline" className="w-full">
-                                <Link to="/cart">View Cart</Link>
+                            <Button 
+                                size="lg" 
+                                className="w-full" 
+                                onClick={handleBuyNow}
+                                disabled={!identity || checkoutProduct.isPending}
+                            >
+                                {checkoutProduct.isPending ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Zap className="mr-2 h-5 w-5" />
+                                        Buy Now
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>

@@ -1,54 +1,100 @@
 {
   "kind": "build_request",
-  "title": "Grant admin privileges to current user",
-  "priority": "high",
+  "title": "Create basic admin dashboard structure",
+  "projectName": "Artist Connect",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the current authenticated user's principal is granted admin privileges in the backend access control system",
-      "target": "backend",
+      "text": "Create a basic admin dashboard page structure at frontend/src/pages/AdminDashboardPage.tsx that displays a welcome message and placeholder sections for future admin features",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-20"
         ],
         "quotes": [
-          "make me admin"
+          "just adding the basic admin dashboard structure first"
         ]
       },
       "acceptanceCriteria": [
-        "The authenticated user's principal is added to the admin list in the backend",
-        "Admin privileges are persisted across canister upgrades",
-        "The user can access all admin-restricted pages after privileges are granted"
+        "AdminDashboardPage.tsx exists and renders successfully",
+        "Page displays a clear admin dashboard title",
+        "Page includes placeholder sections or cards for future features (Stripe settings, user management, revenue analytics)",
+        "Page is accessible via the existing admin route configuration"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
-      "target": "frontend",
+      "text": "Add a backend method to check if a principal ID matches the hardcoded admin principal (gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe) and return a boolean indicating admin status",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-14",
+          "msg-16"
         ],
         "quotes": [
-          "make me admin"
+          "lock me in as admin",
+          "Admin Access Control: Lock the admin panel to only your principal ID"
         ]
       },
       "acceptanceCriteria": [
-        "Admin users can see the Stripe settings navigation card in the account dashboard",
-        "The Stripe settings card links correctly to the payment settings page",
-        "Non-admin users do not see admin-only configuration options"
+        "Backend includes a public query method isAdmin() that returns true only for the specified principal ID",
+        "Method is callable from the frontend",
+        "Non-admin principals receive false when calling this method"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Create a React Query hook useIsAdmin in frontend/src/hooks/useQueries.ts that calls the backend isAdmin method and returns the admin status",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14",
+          "msg-16"
+        ],
+        "quotes": [
+          "Admin Access Control"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hook successfully fetches admin status from backend",
+        "Hook returns a boolean indicating if the current user is an admin",
+        "Hook handles loading and error states appropriately"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the AdminDashboardPage to use the useIsAdmin hook and display an access denied message for non-admin users while showing the dashboard content only for the admin principal",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14",
+          "msg-16"
+        ],
+        "quotes": [
+          "lock me in as admin",
+          "Lock the admin panel to only your principal ID"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Non-admin users see a clear access denied message when visiting the admin dashboard",
+        "The admin principal (gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe) can view the full dashboard",
+        "Access control check happens before rendering dashboard content"
       ]
     }
   ],
   "constraints": [
-    "Use the existing assignAdminPrivileges backend method",
-    "Do not modify the Internet Identity authentication flow",
-    "Maintain the single-actor backend architecture"
+    "Use the existing single-actor backend architecture in backend/main.mo",
+    "Do not modify Internet Identity integration hooks",
+    "Do not modify UI component library files in frontend/src/components/ui",
+    "Keep admin principal ID hardcoded as: gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe"
   ],
   "nonGoals": [
-    "Creating a new admin role system",
-    "Implementing multi-factor authentication",
-    "Building a role-based permission hierarchy beyond admin/non-admin"
+    "Stripe Connect integration or configuration (will be added in subsequent build)",
+    "Checkout page implementation",
+    "Payment processing functionality",
+    "Complex admin features beyond basic structure",
+    "Dynamic admin role assignment or multi-admin support"
   ],
   "imageRequirements": {
     "required": [],

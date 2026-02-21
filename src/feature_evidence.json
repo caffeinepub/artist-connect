@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-verify-that-payment-configuration-stripe-settings-is-visible-in-the-account-dashboard-for-users-with-admin-privileges",
-      "featureTitle": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
+      "featureId": "feature-create-a-basic-admin-dashboard-page-structure-at-frontend-src-pages-admindashboardpage-tsx-that-displays-a-welcome-message-and-placeholder-sections-for-future-admin-features",
+      "featureTitle": "Create a basic admin dashboard page structure at frontend/src/pages/AdminDashboardPage.tsx that displays a welcome message and placeholder sections for future admin features",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AccountDashboardPage.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,7 +21,51 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-react-query-hook-useisadmin-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-isadmin-method-and-returns-the-admin-status",
+      "featureTitle": "Create a React Query hook useIsAdmin in frontend/src/hooks/useQueries.ts that calls the backend isAdmin method and returns the admin status",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admindashboardpage-to-use-the-useisadmin-hook-and-display-an-access-denied-message-for-non-admin-users-while-showing-the-dashboard-content-only-for-the-admin-principal",
+      "featureTitle": "Update the AdminDashboardPage to use the useIsAdmin hook and display an access denied message for non-admin users while showing the dashboard content only for the admin principal",
+      "files": [
+        "frontend/src/pages/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

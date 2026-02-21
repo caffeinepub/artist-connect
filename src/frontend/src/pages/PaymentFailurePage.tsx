@@ -1,60 +1,147 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { XCircle, AlertTriangle } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { XCircle, Home, RefreshCw, AlertCircle } from 'lucide-react';
+
+type PaymentContext = {
+  type: 'product' | 'gig' | 'music' | 'donation' | 'stripe-connect';
+  productId?: string;
+  gigId?: string;
+  musicId?: string;
+  artistId?: string;
+};
 
 export default function PaymentFailurePage() {
-    return (
-        <div className="container py-12">
-            <div className="max-w-2xl mx-auto">
-                <Card className="text-center p-8">
-                    <CardHeader>
-                        <div className="mx-auto mb-6">
-                            <XCircle className="h-20 w-20 text-destructive mx-auto" />
-                        </div>
-                        <CardTitle className="font-display text-3xl md:text-4xl mb-4">
-                            Payment Failed
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <p className="text-xl text-muted-foreground">
-                            We couldn't process your payment. This could be due to insufficient funds, an expired card, or the payment was cancelled.
-                        </p>
-                        
-                        <Alert>
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>
-                                Your cart items have been saved. You can review your order and try again with a different payment method.
-                            </AlertDescription>
-                        </Alert>
+  const navigate = useNavigate();
+  const [paymentContext, setPaymentContext] = useState<PaymentContext | null>(null);
+  const search = useSearch({ strict: false }) as any;
 
-                        <div className="bg-muted/50 rounded-lg p-4 text-sm text-left space-y-2">
-                            <p className="font-medium">Common reasons for payment failure:</p>
-                            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                <li>Insufficient funds in your account</li>
-                                <li>Expired or invalid card details</li>
-                                <li>Payment was cancelled during checkout</li>
-                                <li>Card issuer declined the transaction</li>
-                                <li>Incorrect billing information</li>
-                            </ul>
-                        </div>
+  useEffect(() => {
+    // Check if this is a Stripe Connect OAuth error
+    if (search?.error) {
+      setPaymentContext({ type: 'stripe-connect' });
+      return;
+    }
 
-                        <p className="text-muted-foreground">
-                            If you continue to experience issues, please contact your card issuer or try a different payment method.
-                        </p>
+    const contextStr = sessionStorage.getItem('paymentContext');
+    if (contextStr) {
+      try {
+        const context = JSON.parse(contextStr) as PaymentContext;
+        setPaymentContext(context);
+      } catch (error) {
+        console.error('Failed to parse payment context:', error);
+      }
+    }
+  }, [search]);
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-                            <Button asChild size="lg">
-                                <Link to="/cart">Return to Cart</Link>
-                            </Button>
-                            <Button asChild variant="outline" size="lg">
-                                <Link to="/">Return Home</Link>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+  const getRetryAction = () => {
+    switch (paymentContext?.type) {
+      case 'product':
+        return paymentContext.productId
+          ? () => navigate({ to: `/store/${paymentContext.productId}` })
+          : () => navigate({ to: '/store' });
+      case 'music':
+        return () => navigate({ to: '/music' });
+      case 'gig':
+        return paymentContext.gigId
+          ? () => navigate({ to: `/gigs/${paymentContext.gigId}` })
+          : () => navigate({ to: '/' });
+      case 'donation':
+        return paymentContext.artistId
+          ? () => navigate({ to: `/artists/${paymentContext.artistId}` })
+          : () => navigate({ to: '/' });
+      case 'stripe-connect':
+        return () => navigate({ to: '/stripe-connect' });
+      default:
+        return () => navigate({ to: '/' });
+    }
+  };
+
+  const getRetryButtonText = () => {
+    switch (paymentContext?.type) {
+      case 'product':
+        return 'Return to Product';
+      case 'music':
+        return 'Return to Music Library';
+      case 'gig':
+        return 'Return to Gig';
+      case 'donation':
+        return 'Try Donation Again';
+      case 'stripe-connect':
+        return 'Try Connecting Again';
+      default:
+        return 'Try Again';
+    }
+  };
+
+  const getErrorMessage = () => {
+    if (paymentContext?.type === 'stripe-connect') {
+      return 'We were unable to connect your Stripe account. This could be due to cancellation or an error during the connection process.';
+    }
+    return 'We were unable to process your payment. Please try again or use a different payment method.';
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-16">
+      <div className="max-w-2xl mx-auto">
+        <Card className="text-center">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <XCircle className="h-16 w-16 text-destructive" />
             </div>
-        </div>
-    );
+            <CardTitle className="text-3xl">
+              {paymentContext?.type === 'stripe-connect' ? 'Connection Failed' : 'Payment Failed'}
+            </CardTitle>
+            <CardDescription className="text-base">{getErrorMessage()}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Common reasons for {paymentContext?.type === 'stripe-connect' ? 'connection' : 'payment'} failure:</strong>
+                <ul className="list-disc list-inside mt-2 text-sm space-y-1">
+                  {paymentContext?.type === 'stripe-connect' ? (
+                    <>
+                      <li>Connection process was cancelled</li>
+                      <li>Invalid or incomplete account information</li>
+                      <li>Account verification issues</li>
+                      <li>Network connection problems</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>Insufficient funds in your account</li>
+                      <li>Incorrect card details or expired card</li>
+                      <li>Payment declined by your bank</li>
+                      <li>Network connection issues</li>
+                    </>
+                  )}
+                </ul>
+              </AlertDescription>
+            </Alert>
+
+            {paymentContext?.type && (
+              <div className="bg-muted p-4 rounded-lg text-left">
+                <p className="text-sm font-medium mb-2">
+                  {paymentContext.type === 'stripe-connect' ? 'Connection Type:' : 'Payment Type:'}
+                </p>
+                <p className="text-sm text-muted-foreground capitalize">{paymentContext.type}</p>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={getRetryAction()} size="lg">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {getRetryButtonText()}
+            </Button>
+            <Button variant="outline" onClick={() => navigate({ to: '/' })} size="lg">
+              <Home className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
 }

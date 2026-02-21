@@ -1,365 +1,225 @@
-import { useGetAllProducts, useCreateProduct, useBulkCreateProducts, BulkProductItem } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useCart } from '../hooks/useCart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useGetAllProducts, useCheckoutProduct } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { toast } from 'sonner';
-import { Store, Plus, ShoppingCart, Upload } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
-import { ExternalBlob } from '../backend';
-import BulkImageUpload, { ImageUploadItem } from '../components/BulkImageUpload';
+import { Loader2, Zap } from 'lucide-react';
+import BulkImageUpload from '../components/BulkImageUpload';
 
 export default function StorePage() {
-    const { data: products, isLoading } = useGetAllProducts();
-    const { identity } = useInternetIdentity();
-    const { addItem } = useCart();
-    const createProduct = useCreateProduct();
-    const bulkCreateProducts = useBulkCreateProducts();
-    const [open, setOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('single');
+  const { data: products = [], isLoading } = useGetAllProducts();
+  const { identity } = useInternetIdentity();
+  const checkoutProduct = useCheckoutProduct();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [checkingOutProductId, setCheckingOutProductId] = useState<string | null>(null);
 
-    // Single product form state
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
-    const [subcategory, setSubcategory] = useState('');
-    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-    const [productImage, setProductImage] = useState<ExternalBlob | null>(null);
+  const [newProduct, setNewProduct] = useState({
+    title: '',
+    description: '',
+    price: '',
+    subcategory: '',
+  });
+  const [productImages, setProductImages] = useState<File[]>([]);
 
-    // Bulk upload state
-    const [bulkUploadedItems, setBulkUploadedItems] = useState<ImageUploadItem[]>([]);
-    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const handleBuyNow = async (productId: string) => {
+    if (!identity) {
+      toast.error('Please log in to make a purchase');
+      return;
+    }
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    setCheckingOutProductId(productId);
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    const successUrl = `${baseUrl}/payment-success`;
+    const cancelUrl = `${baseUrl}/payment-failure`;
 
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
-            return;
-        }
+    try {
+      const session = await checkoutProduct.mutateAsync({
+        productId,
+        successUrl,
+        cancelUrl,
+      });
 
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const blob = ExternalBlob.fromBytes(uint8Array).withUploadProgress((percentage) => {
-                setUploadProgress(percentage);
-            });
-            setProductImage(blob);
-            setUploadProgress(null);
-        } catch (error) {
-            toast.error('Failed to process image');
-            console.error(error);
-            setUploadProgress(null);
-        }
-    };
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
 
-    const handleCreate = async () => {
-        if (!identity || !title.trim() || !description.trim() || !price || !subcategory.trim() || !productImage) {
-            toast.error('Please fill in all fields and upload an image');
-            return;
-        }
+      window.location.href = session.url;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to start checkout. Please try again.');
+      setCheckingOutProductId(null);
+    }
+  };
 
-        try {
-            await createProduct.mutateAsync({
-                id: `product-${Date.now()}`,
-                title: title.trim(),
-                description: description.trim(),
-                price: BigInt(Math.round(parseFloat(price) * 100)),
-                productImages: [productImage],
-                subcategory: subcategory.trim()
-            });
-            toast.success('Product created successfully!');
-            setOpen(false);
-            setTitle('');
-            setDescription('');
-            setPrice('');
-            setSubcategory('');
-            setProductImage(null);
-        } catch (error) {
-            toast.error('Failed to create product');
-            console.error(error);
-        }
-    };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setProductImages(Array.from(e.target.files));
+    }
+  };
 
-    const handleBulkUploadComplete = (items: ImageUploadItem[]) => {
-        setBulkUploadedItems(items);
-    };
+  const handleCreateProduct = async () => {
+    if (!identity) {
+      toast.error('Please log in to create products');
+      return;
+    }
 
-    const handleBulkCreate = async () => {
-        const successfulUploads = bulkUploadedItems.filter(
-            item => item.status === 'success' && item.blob
-        );
+    if (!newProduct.title || !newProduct.description || !newProduct.price || productImages.length === 0) {
+      toast.error('Please fill in all fields and upload at least one image');
+      return;
+    }
 
-        if (successfulUploads.length === 0) {
-            toast.error('No images ready to create products');
-            return;
-        }
+    toast.info('Product creation via individual form is not yet implemented. Please use bulk upload.');
+    setDialogOpen(false);
+  };
 
-        // Validate all items
-        const invalidItems = successfulUploads.filter(item => 
-            !item.category || !item.subcategory || item.price <= 0 || !item.description.trim()
-        );
+  const handleBulkUploadComplete = () => {
+    toast.success('Products uploaded successfully!');
+    setDialogOpen(false);
+  };
 
-        if (invalidItems.length > 0) {
-            toast.error(`Please fill in all fields for all images. ${invalidItems.length} item(s) missing data.`);
-            return;
-        }
-
-        setIsBulkProcessing(true);
-        toast.info(`Creating ${successfulUploads.length} products...`);
-
-        try {
-            const itemsToCreate: BulkProductItem[] = successfulUploads.map(item => ({
-                file: item.file,
-                blob: item.blob!,
-                category: item.category,
-                subcategory: item.subcategory,
-                price: item.price,
-                description: item.description
-            }));
-
-            const results = await bulkCreateProducts.mutateAsync(itemsToCreate);
-
-            const successCount = results.filter(r => r.success).length;
-            const failCount = results.filter(r => !r.success).length;
-
-            if (successCount > 0) {
-                toast.success(`Successfully created ${successCount} product${successCount > 1 ? 's' : ''}!`);
-            }
-
-            if (failCount > 0) {
-                const failedFiles = results
-                    .filter(r => !r.success)
-                    .map(r => r.fileName)
-                    .join(', ');
-                toast.error(`Failed to create ${failCount} product${failCount > 1 ? 's' : ''}: ${failedFiles}`);
-            }
-
-            if (successCount > 0) {
-                setBulkUploadedItems([]);
-                setOpen(false);
-            }
-        } catch (error) {
-            toast.error('Bulk product creation failed');
-            console.error(error);
-        } finally {
-            setIsBulkProcessing(false);
-        }
-    };
-
-    const handleAddToCart = (product: any) => {
-        addItem({
-            type: 'product',
-            id: product.id,
-            name: product.title,
-            description: product.description,
-            price: Number(product.price) / 100,
-            imageUrl: product.productImages[0]?.getDirectURL()
-        });
-        toast.success('Added to cart!');
-    };
-
+  if (isLoading) {
     return (
-        <div className="container py-12">
-            <div className="mb-8">
-                <img
-                    src="/assets/generated/product-showcase.dim_800x600.png"
-                    alt="Product showcase"
-                    className="w-full h-64 object-cover rounded-2xl shadow-artistic-lg"
-                />
-            </div>
-
-            <div className="flex justify-between items-start mb-12">
-                <div>
-                    <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">Art Store</h1>
-                    <p className="text-xl text-muted-foreground">
-                        Shop unique artwork and creative merchandise
-                    </p>
-                </div>
-                {identity && (
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger asChild>
-                            <Button size="lg">
-                                <Plus className="mr-2 h-5 w-5" />
-                                Add Product
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle className="font-display text-2xl">Add Products</DialogTitle>
-                            </DialogHeader>
-                            
-                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="single">Single Product</TabsTrigger>
-                                    <TabsTrigger value="bulk">
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Bulk Upload
-                                    </TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="single" className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="product-title">Product Title *</Label>
-                                        <Input
-                                            id="product-title"
-                                            placeholder="e.g., Abstract Canvas Print"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="product-description">Description *</Label>
-                                        <Textarea
-                                            id="product-description"
-                                            placeholder="Describe your product..."
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            rows={3}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="product-subcategory">Subcategory *</Label>
-                                        <Input
-                                            id="product-subcategory"
-                                            placeholder="e.g., Modern Art, Vintage"
-                                            value={subcategory}
-                                            onChange={(e) => setSubcategory(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="product-price">Price (USD) *</Label>
-                                        <Input
-                                            id="product-price"
-                                            type="number"
-                                            placeholder="29.99"
-                                            value={price}
-                                            onChange={(e) => setPrice(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="product-image">Product Image *</Label>
-                                        <Input
-                                            id="product-image"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            disabled={uploadProgress !== null}
-                                        />
-                                        {uploadProgress !== null && (
-                                            <p className="text-sm text-muted-foreground">Uploading... {uploadProgress}%</p>
-                                        )}
-                                    </div>
-                                    <Button onClick={handleCreate} disabled={createProduct.isPending} className="w-full">
-                                        {createProduct.isPending ? 'Creating...' : 'Create Product'}
-                                    </Button>
-                                </TabsContent>
-
-                                <TabsContent value="bulk" className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                        <Label>Upload Multiple Images with Metadata</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Select multiple images and configure category, subcategory, price, and description for each.
-                                        </p>
-                                    </div>
-                                    
-                                    <BulkImageUpload
-                                        onUploadComplete={handleBulkUploadComplete}
-                                        onUploadStart={() => toast.info('Starting bulk upload...')}
-                                        disabled={isBulkProcessing}
-                                    />
-
-                                    {bulkUploadedItems.length > 0 && (
-                                        <div className="pt-4 border-t">
-                                            <Button
-                                                onClick={handleBulkCreate}
-                                                disabled={isBulkProcessing || bulkCreateProducts.isPending}
-                                                className="w-full"
-                                            >
-                                                {isBulkProcessing || bulkCreateProducts.isPending
-                                                    ? 'Creating Products...'
-                                                    : `Create ${bulkUploadedItems.filter(i => i.status === 'success').length} Products`}
-                                            </Button>
-                                        </div>
-                                    )}
-                                </TabsContent>
-                            </Tabs>
-                        </DialogContent>
-                    </Dialog>
-                )}
-            </div>
-
-            {isLoading ? (
-                <div className="gallery-grid">
-                    {[...Array(6)].map((_, i) => (
-                        <Card key={i}>
-                            <Skeleton className="h-64 w-full rounded-t-lg" />
-                            <CardHeader>
-                                <Skeleton className="h-6 w-3/4" />
-                            </CardHeader>
-                            <CardContent>
-                                <Skeleton className="h-10 w-full" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : products && products.length > 0 ? (
-                <div className="gallery-grid">
-                    {products.map((product) => (
-                        <Card
-                            key={product.id}
-                            className="group hover:shadow-artistic transition-all hover:border-primary/50"
-                        >
-                            <div className="aspect-square overflow-hidden rounded-t-lg bg-muted">
-                                {product.productImages.length > 0 ? (
-                                    <img
-                                        src={product.productImages[0].getDirectURL()}
-                                        alt={product.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <Store className="h-16 w-16 text-muted-foreground" />
-                                    </div>
-                                )}
-                            </div>
-                            <CardHeader>
-                                <CardTitle className="font-display text-xl">{product.title}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{product.subcategory}</p>
-                                <p className="text-2xl font-bold text-primary">${Number(product.price) / 100}</p>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-                                <div className="flex gap-2">
-                                    <Button asChild variant="outline" className="flex-1">
-                                        <Link to="/store/$id" params={{ id: product.id }}>
-                                            View
-                                        </Link>
-                                    </Button>
-                                    <Button onClick={() => handleAddToCart(product)} className="flex-1">
-                                        <ShoppingCart className="mr-2 h-4 w-4" />
-                                        Add
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <Card className="p-12 text-center">
-                    <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-display text-2xl font-semibold mb-2">No Products Yet</h3>
-                    <p className="text-muted-foreground">Be the first to list a product!</p>
-                </Card>
-            )}
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Product Store</h1>
+          <p className="text-muted-foreground">Browse and purchase products from talented artists</p>
+        </div>
+        {identity && (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Add Product</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+                <DialogDescription>Create a new product listing or upload multiple products at once</DialogDescription>
+              </DialogHeader>
+              <Tabs defaultValue="single" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="single">Single Product</TabsTrigger>
+                  <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+                </TabsList>
+                <TabsContent value="single" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Product Title</Label>
+                    <Input
+                      id="title"
+                      value={newProduct.title}
+                      onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
+                      placeholder="Enter product title"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Subcategory</Label>
+                    <Input
+                      id="subcategory"
+                      value={newProduct.subcategory}
+                      onChange={(e) => setNewProduct({ ...newProduct, subcategory: e.target.value })}
+                      placeholder="e.g., sedan, SUV, truck"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={newProduct.description}
+                      onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                      placeholder="Enter product description"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price (in cents)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                      placeholder="e.g., 2999 for $29.99"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="images">Product Images</Label>
+                    <Input id="images" type="file" multiple accept="image/*" onChange={handleImageChange} />
+                  </div>
+                  <Button onClick={handleCreateProduct} className="w-full">
+                    Create Product
+                  </Button>
+                </TabsContent>
+                <TabsContent value="bulk">
+                  <BulkImageUpload onUploadComplete={handleBulkUploadComplete} />
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {products.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-lg">No products available yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => {
+            const imageUrl = product.productImages[0]?.getDirectURL();
+            const isCheckingOut = checkingOutProductId === product.id;
+
+            return (
+              <Card key={product.id} className="overflow-hidden">
+                {imageUrl && (
+                  <div className="aspect-video w-full overflow-hidden bg-muted">
+                    <img src={imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{product.title}</CardTitle>
+                  {product.subcategory && (
+                    <CardDescription className="text-xs uppercase tracking-wide">{product.subcategory}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                  <p className="text-2xl font-bold mt-4">${(Number(product.price) / 100).toFixed(2)}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleBuyNow(product.id)}
+                    disabled={!identity || isCheckingOut}
+                  >
+                    {isCheckingOut ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="mr-2 h-4 w-4" />
+                        Buy Now
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }

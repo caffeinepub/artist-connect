@@ -160,6 +160,7 @@ export default function AdminStoreSettingsPage() {
                 taxRate: BigInt(tax),
                 categoryLimit: BigInt(categoriesLimit),
                 returnDays: BigInt(returnDays),
+                filterOptions: [],
                 pricingRules: {
                     minPrice: BigInt(minPriceValue),
                     maxPrice: BigInt(maxPriceValue)
@@ -351,7 +352,7 @@ export default function AdminStoreSettingsPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {categories.map((category) => (
-                                        <Badge key={category} variant="secondary" className="gap-1">
+                                        <Badge key={category} variant="secondary" className="flex items-center gap-1">
                                             {category}
                                             <button
                                                 onClick={() => handleRemoveCategory(category)}
@@ -361,20 +362,6 @@ export default function AdminStoreSettingsPage() {
                                             </button>
                                         </Badge>
                                     ))}
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="categoryLimit">Category Limit</Label>
-                                    <Input
-                                        id="categoryLimit"
-                                        type="number"
-                                        value={categoryLimit}
-                                        onChange={(e) => setCategoryLimit(e.target.value)}
-                                        placeholder="10"
-                                        min="1"
-                                    />
-                                    <p className="text-sm text-muted-foreground">
-                                        Maximum number of categories per product
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -395,7 +382,7 @@ export default function AdminStoreSettingsPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {tags.map((tag) => (
-                                        <Badge key={tag} variant="outline" className="gap-1">
+                                        <Badge key={tag} variant="outline" className="flex items-center gap-1">
                                             {tag}
                                             <button
                                                 onClick={() => handleRemoveTag(tag)}
@@ -425,25 +412,22 @@ export default function AdminStoreSettingsPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {featuredProducts.map((productId) => (
-                                        <Badge key={productId} className="gap-1">
+                                        <Badge key={productId} className="flex items-center gap-1">
                                             {productId}
                                             <button
                                                 onClick={() => handleRemoveFeaturedProduct(productId)}
-                                                className="ml-1 hover:text-destructive-foreground"
+                                                className="ml-1 hover:text-destructive"
                                             >
                                                 <X className="h-3 w-3" />
                                             </button>
                                         </Badge>
                                     ))}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                    Manage which products appear as featured
-                                </p>
                             </div>
                         </div>
 
                         <div className="border-t pt-6">
-                            <h3 className="text-lg font-semibold mb-4">Product Status Workflow</h3>
+                            <h3 className="text-lg font-semibold mb-4">Product Statuses</h3>
                             <div className="space-y-4">
                                 <div className="flex gap-2">
                                     <Input
@@ -458,7 +442,7 @@ export default function AdminStoreSettingsPage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {productStatuses.map((status) => (
-                                        <Badge key={status} variant="secondary" className="gap-1">
+                                        <Badge key={status} variant="secondary" className="flex items-center gap-1">
                                             {status}
                                             <button
                                                 onClick={() => handleRemoveStatus(status)}
@@ -469,9 +453,51 @@ export default function AdminStoreSettingsPage() {
                                         </Badge>
                                     ))}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                    Define available product statuses (e.g., draft, pending, approved, rejected)
-                                </p>
+                            </div>
+                        </div>
+
+                        <div className="border-t pt-6">
+                            <h3 className="text-lg font-semibold mb-4">Approval Workflow</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="approvalJobs">Require Approval for Jobs</Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Job postings must be approved before being visible
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="approvalJobs"
+                                        checked={requireApprovalJobs}
+                                        onCheckedChange={setRequireApprovalJobs}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="approvalProducts">Require Approval for Products</Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Products must be approved before being listed
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="approvalProducts"
+                                        checked={requireApprovalProducts}
+                                        onCheckedChange={setRequireApprovalProducts}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="approvalGigs">Require Approval for Gigs</Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Gigs must be approved before being visible
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="approvalGigs"
+                                        checked={requireApprovalGigs}
+                                        onCheckedChange={setRequireApprovalGigs}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -494,61 +520,27 @@ export default function AdminStoreSettingsPage() {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="border-t pt-6">
-                            <h3 className="text-lg font-semibold mb-4">Approval Workflow</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between space-x-2">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="requireApprovalJobs">Require Approval for Jobs</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Job postings need admin approval before going live
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        id="requireApprovalJobs"
-                                        checked={requireApprovalJobs}
-                                        onCheckedChange={setRequireApprovalJobs}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between space-x-2">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="requireApprovalProducts">Require Approval for Products</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Products need admin approval before being listed
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        id="requireApprovalProducts"
-                                        checked={requireApprovalProducts}
-                                        onCheckedChange={setRequireApprovalProducts}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between space-x-2">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="requireApprovalGigs">Require Approval for Gigs</Label>
-                                        <p className="text-sm text-muted-foreground">
-                                            Gigs need admin approval before being published
-                                        </p>
-                                    </div>
-                                    <Switch
-                                        id="requireApprovalGigs"
-                                        checked={requireApprovalGigs}
-                                        onCheckedChange={setRequireApprovalGigs}
-                                    />
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <div className="flex justify-end pt-6 border-t">
+                    <div className="flex justify-end gap-4 pt-6 border-t">
+                        <Button variant="outline" onClick={() => navigate({ to: '/' })}>
+                            Cancel
+                        </Button>
                         <Button
                             onClick={handleSave}
                             disabled={updateConfig.isPending || updateApproval.isPending}
-                            size="lg"
                         >
-                            <Save className="h-4 w-4 mr-2" />
-                            {updateConfig.isPending || updateApproval.isPending ? 'Saving...' : 'Save Settings'}
+                            {updateConfig.isPending || updateApproval.isPending ? (
+                                <>
+                                    <Save className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Settings
+                                </>
+                            )}
                         </Button>
                     </div>
                 </CardContent>

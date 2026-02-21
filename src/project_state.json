@@ -1,18 +1,38 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Payment configuration not visible on live page for admin users"
+  "summary": "Admin dashboard and Stripe Connect payment system for users to receive payments directly through checkout pages",
+  "architectural_notes": [
+    "Payments flow directly to users' Stripe Connect accounts (not through platform)",
+    "Admin panel restricted to single principal ID: gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe",
+    "Stripe API keys provided directly and stored in backend configuration"
   ],
-  "isFixRequest": true,
+  "known_issues": [
+    "Multiple build failures occurred during Stripe Connect implementation - breaking into smaller incremental steps"
+  ],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-verify-that-payment-configuration-stripe-settings-is-visible-in-the-account-dashboard-for-users-with-admin-privileges",
-      "title": "Verify that payment configuration (Stripe settings) is visible in the account dashboard for users with admin privileges",
+      "id": "feature-create-a-basic-admin-dashboard-page-structure-at-frontend-src-pages-admindashboardpage-tsx-that-displays-a-welcome-message-and-placeholder-sections-for-future-admin-features",
+      "title": "Create a basic admin dashboard page structure at frontend/src/pages/AdminDashboardPage.tsx that displays a welcome message and placeholder sections for future admin features",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-hook-useisadmin-in-frontend-src-hooks-usequeries-ts-that-calls-the-backend-isadmin-method-and-returns-the-admin-status",
+      "title": "Create a React Query hook useIsAdmin in frontend/src/hooks/useQueries.ts that calls the backend isAdmin method and returns the admin status",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admindashboardpage-to-use-the-useisadmin-hook-and-display-an-access-denied-message-for-non-admin-users-while-showing-the-dashboard-content-only-for-the-admin-principal",
+      "title": "Update the AdminDashboardPage to use the useIsAdmin hook and display an access denied message for non-admin users while showing the dashboard content only for the admin principal",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -20,14 +40,53 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Ensure the current authenticated user's principal is granted admin privileges in the backend access control system",
+      "summary": "Admin dashboard structure",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Admin access control restricted to principal ID gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe",
       "reqIds": [
-        "REQ-1"
+        "AR-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Stripe API configuration section in backend",
+      "reqIds": [
+        "AR-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Stripe Connect onboarding flow for users",
+      "reqIds": [
+        "AR-2",
+        "AR-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Checkout pages with direct payment to connected users",
+      "reqIds": [
+        "AR-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add a backend method to check if a principal ID matches the hardcoded admin principal (gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe) and return a boolean indicating admin status",
+      "reqIds": [
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Grant admin privileges to current user",
+  "projectName": "Artist Connect",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

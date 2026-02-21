@@ -1,211 +1,255 @@
+import React from 'react';
 import { Link, Outlet, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIsCallerAdmin } from '../hooks/useQueries';
-import { useCart } from '../hooks/useCart';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, Settings, LayoutDashboard } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { User, LogOut, Settings, Package, CreditCard, BarChart3, Palette, DollarSign, Users, LayoutDashboard } from 'lucide-react';
 import { SiFacebook, SiX, SiInstagram, SiLinkedin } from 'react-icons/si';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Layout() {
-    const { login, clear, loginStatus, identity } = useInternetIdentity();
-    const { data: isAdmin } = useIsCallerAdmin();
-    const { getCartItemCount } = useCart();
-    const queryClient = useQueryClient();
-    const navigate = useNavigate();
+  const { identity, clear, loginStatus, login } = useInternetIdentity();
+  const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-    const isAuthenticated = !!identity;
-    const disabled = loginStatus === 'logging-in';
-    const text = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
-    const cartItemCount = getCartItemCount();
+  const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === 'logging-in';
 
-    const handleAuth = async () => {
-        if (isAuthenticated) {
-            await clear();
-            queryClient.clear();
-        } else {
-            try {
-                await login();
-            } catch (error: any) {
-                console.error('Login error:', error);
-                if (error.message === 'User is already authenticated') {
-                    await clear();
-                    setTimeout(() => login(), 300);
-                }
-            }
+  const handleAuth = async () => {
+    if (isAuthenticated) {
+      await clear();
+      queryClient.clear();
+      navigate({ to: '/' });
+    } else {
+      try {
+        await login();
+      } catch (error: any) {
+        console.error('Login error:', error);
+        if (error.message === 'User is already authenticated') {
+          await clear();
+          setTimeout(() => login(), 300);
         }
-    };
+      }
+    }
+  };
 
-    const navLinks = [
-        { to: '/artists', label: 'Artists' },
-        { to: '/jobs', label: 'Jobs' },
-        { to: '/gigs', label: 'Gigs' },
-        { to: '/store', label: 'Store' },
-        { to: '/music', label: 'Music Library' },
-    ];
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-8">
+              <Link to="/" className="text-2xl font-bold">
+                Artist Platform
+              </Link>
+              <nav className="hidden md:flex items-center gap-6">
+                <Link
+                  to="/artists"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  activeProps={{ className: 'text-primary' }}
+                >
+                  Artists
+                </Link>
+                <Link
+                  to="/jobs"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  activeProps={{ className: 'text-primary' }}
+                >
+                  Jobs
+                </Link>
+                <Link
+                  to="/gigs"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  activeProps={{ className: 'text-primary' }}
+                >
+                  Gigs
+                </Link>
+                <Link
+                  to="/store"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  activeProps={{ className: 'text-primary' }}
+                >
+                  Store
+                </Link>
+                <Link
+                  to="/music"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  activeProps={{ className: 'text-primary' }}
+                >
+                  Music
+                </Link>
+              </nav>
+            </div>
 
-    return (
-        <div className="min-h-screen flex flex-col">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center justify-between">
-                    <div className="flex items-center gap-8">
-                        <Link to="/" className="font-display text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
-                            ArtistConnect
-                        </Link>
-                        <nav className="hidden md:flex gap-6">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.to}
-                                    to={link.to}
-                                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                                    activeProps={{ className: 'text-primary' }}
-                                >
-                                    {link.label}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative"
-                            onClick={() => navigate({ to: '/cart' })}
-                        >
-                            <ShoppingCart className="h-5 w-5" />
-                            {cartItemCount > 0 && (
-                                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                                    {cartItemCount}
-                                </span>
-                            )}
+            <div className="flex items-center gap-4">
+              <Link to="/artist/onboarding">
+                <Button variant="outline" size="sm">
+                  Become an Artist
+                </Button>
+              </Link>
+
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => navigate({ to: '/account/dashboard' })}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Account Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate({ to: '/artist/items' })}>
+                        <Package className="mr-2 h-4 w-4" />
+                        My Items
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate({ to: '/stripe-connect' })}>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Stripe Connect
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleAuth}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {!isAdminLoading && isAdmin && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Admin
                         </Button>
-                        {isAuthenticated && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <User className="h-5 w-5" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => navigate({ to: '/account/dashboard' })}>
-                                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                                        Account Dashboard
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate({ to: '/my-profile' })}>
-                                        My Profile
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate({ to: '/bookings' })}>
-                                        My Bookings
-                                    </DropdownMenuItem>
-                                    {isAdmin && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuLabel className="flex items-center gap-2">
-                                                <Settings className="h-4 w-4" />
-                                                Admin
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/users' })}>
-                                                User Management
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/site-config' })}>
-                                                Site Settings
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/store-settings' })}>
-                                                Store Settings
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => navigate({ to: '/admin/stripe-settings' })}>
-                                                Stripe Settings
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                        <Button
-                            onClick={handleAuth}
-                            disabled={disabled}
-                            variant={isAuthenticated ? 'outline' : 'default'}
-                        >
-                            {text}
-                        </Button>
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/dashboard' })}>
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/branding' })}>
+                          <Palette className="mr-2 h-4 w-4" />
+                          Branding
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/revenue' })}>
+                          <BarChart3 className="mr-2 h-4 w-4" />
+                          Revenue Analytics
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/commission' })}>
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Commission Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/users' })}>
+                          <Users className="mr-2 h-4 w-4" />
+                          User Management
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/stripe-settings' })}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Stripe Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate({ to: '/admin/store-settings' })}>
+                          <Settings className="mr-2 h-4 w-4" />
+                          Store Settings
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
-            </header>
-
-            <main className="flex-1">
-                <Outlet />
-            </main>
-
-            <footer className="border-t bg-muted/50 py-12">
-                <div className="container">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                        <div>
-                            <h3 className="font-display text-lg font-semibold mb-4">ArtistConnect</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Connecting artists with opportunities and audiences worldwide.
-                            </p>
-                        </div>
-                        <div>
-                            <h3 className="font-display text-lg font-semibold mb-4">Quick Links</h3>
-                            <ul className="space-y-2">
-                                {navLinks.map((link) => (
-                                    <li key={link.to}>
-                                        <Link
-                                            to={link.to}
-                                            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                                        >
-                                            {link.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-display text-lg font-semibold mb-4">Connect</h3>
-                            <div className="flex gap-4">
-                                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                    <SiFacebook className="h-5 w-5" />
-                                </a>
-                                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                    <SiX className="h-5 w-5" />
-                                </a>
-                                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                    <SiInstagram className="h-5 w-5" />
-                                </a>
-                                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                    <SiLinkedin className="h-5 w-5" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-sm text-muted-foreground">
-                            © {new Date().getFullYear()} ArtistConnect. All rights reserved.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Built with ❤️ using{' '}
-                            <a
-                                href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                            >
-                                caffeine.ai
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </footer>
+              ) : (
+                <Button onClick={handleAuth} disabled={isLoggingIn} size="sm">
+                  {isLoggingIn ? 'Logging in...' : 'Login'}
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
-    );
+      </header>
+
+      <main className="flex-1">
+        <Outlet />
+      </main>
+
+      <footer className="border-t bg-muted/50 mt-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4">Artist Platform</h3>
+              <p className="text-sm text-muted-foreground">
+                Empowering artists and connecting them with opportunities worldwide.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/artists" className="text-muted-foreground hover:text-primary">
+                    Browse Artists
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/jobs" className="text-muted-foreground hover:text-primary">
+                    Find Jobs
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/gigs" className="text-muted-foreground hover:text-primary">
+                    Explore Gigs
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/store" className="text-muted-foreground hover:text-primary">
+                    Shop Products
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Connect With Us</h3>
+              <div className="flex gap-4">
+                <a href="#" className="text-muted-foreground hover:text-primary">
+                  <SiFacebook className="h-5 w-5" />
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-primary">
+                  <SiX className="h-5 w-5" />
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-primary">
+                  <SiInstagram className="h-5 w-5" />
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-primary">
+                  <SiLinkedin className="h-5 w-5" />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
+            <p>
+              © {new Date().getFullYear()} Artist Platform. Built with love using{' '}
+              <a
+                href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
+                  window.location.hostname
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary"
+              >
+                caffeine.ai
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }

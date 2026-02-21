@@ -14,17 +14,19 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface GetAllServicesResponse {
-    services: Array<Service>;
-}
-export interface Product {
+export interface Music {
     id: string;
     title: string;
-    subcategory: string;
-    artistId: Principal;
-    productImages: Array<ExternalBlob>;
+    audioFileBlob: ExternalBlob;
     description: string;
+    category: string;
+    artist: Principal;
     price: bigint;
+    uploadDate: bigint;
+}
+export interface UserProfile {
+    name: string;
+    email: string;
 }
 export interface TransformationOutput {
     status: bigint;
@@ -34,6 +36,9 @@ export interface TransformationOutput {
 export type Time = bigint;
 export interface GetAvailableTimeSlotsResponse {
     timeSlots: Array<string>;
+}
+export interface GetAllServicesResponse {
+    services: Array<Service>;
 }
 export interface CreateArtistProfileRequest {
     bio: string;
@@ -45,6 +50,29 @@ export interface CalculateTimeRangeRequest {
     endDate: Time;
     endTime: string;
     startDate: Time;
+}
+export interface PaymentTransaction {
+    id: string;
+    transactionType: Variant_productSale_donation;
+    platformFee: bigint;
+    artistId: Principal;
+    productId: string;
+    artistShare: bigint;
+    buyerId: Principal;
+    timestamp: Time;
+    amount: bigint;
+}
+export interface UserInfo {
+    principal: Principal;
+    role: UserRole;
+    hasArtistProfile: boolean;
+    totalRevenue: bigint;
+}
+export interface PlatformRevenueMetrics {
+    averageTransactionValue: bigint;
+    totalPlatformRevenue: bigint;
+    totalArtistPayouts: bigint;
+    totalTransactions: bigint;
 }
 export interface BookServiceRequest {
     date: Time;
@@ -68,6 +96,7 @@ export interface StoreProductConfig {
     productCategories: Array<string>;
     freeShippingThreshold: bigint;
     productTags: Array<string>;
+    artistRevenueSharePercentage: bigint;
     pricingRules: PricingRule;
     filterOptions: Array<StoreProductFilter>;
     inventoryTrackingEnabled: boolean;
@@ -142,6 +171,12 @@ export interface CreateArtistProfileResponse {
 export interface AllArtistProfilesResponse {
     profiles: Array<ArtistProfile>;
 }
+export interface ArtistRevenue {
+    paidRevenue: bigint;
+    artistId: Principal;
+    pendingRevenue: bigint;
+    totalRevenue: bigint;
+}
 export interface StoreProductFilter {
     maxPrice?: bigint;
     available?: boolean;
@@ -172,6 +207,12 @@ export interface Service {
     category?: string;
     price: bigint;
 }
+export interface UpdateArtistProfileRequest {
+    bio: string;
+    contactInfo: string;
+    portfolioImages: Array<ExternalBlob>;
+    skills: Array<string>;
+}
 export interface http_header {
     value: string;
     name: string;
@@ -195,6 +236,13 @@ export interface Range {
 export interface GetServicesByArtistResponse {
     services: Array<Service>;
 }
+export interface SiteBranding {
+    primaryColor: string;
+    description: string;
+    siteName: string;
+    logoUrl: string;
+    secondaryColor: string;
+}
 export interface ArtistProfile {
     id: string;
     bio: string;
@@ -202,30 +250,34 @@ export interface ArtistProfile {
     portfolioImages: Array<ExternalBlob>;
     skills: Array<string>;
 }
+export interface Product {
+    id: string;
+    title: string;
+    subcategory: string;
+    artistId: Principal;
+    productImages: Array<ExternalBlob>;
+    description: string;
+    price: bigint;
+}
 export interface PricingRule {
     maxPrice: bigint;
     minPrice: bigint;
-}
-export interface Music {
-    id: string;
-    title: string;
-    audioFileBlob: ExternalBlob;
-    description: string;
-    category: string;
-    artist: Principal;
-    price: bigint;
-    uploadDate: bigint;
 }
 export enum UserRole {
     admin = "admin",
     user = "user",
     guest = "guest"
 }
+export enum Variant_productSale_donation {
+    productSale = "productSale",
+    donation = "donation"
+}
 export interface backendInterface {
     addPortfolioImage(blob: ExternalBlob): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bookService(request: BookServiceRequest): Promise<void>;
     calculateTimeRange(arg0: CalculateTimeRangeRequest): Promise<void>;
+    checkoutAndPayProduct(productId: string, successUrl: string, cancelUrl: string): Promise<string>;
     createArtistProfile(artist: CreateArtistProfileRequest): Promise<CreateArtistProfileResponse>;
     createBooking(booking: Booking): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
@@ -241,6 +293,7 @@ export interface backendInterface {
     deleteMusic(id: string): Promise<void>;
     deleteProduct(id: string): Promise<void>;
     deleteService(request: DeleteServiceRequest): Promise<void>;
+    donateToArtist(artistId: Principal, amount: bigint, successUrl: string, cancelUrl: string): Promise<string>;
     findBookingsByArtist(artistId: Principal): Promise<Array<Booking>>;
     findBookingsByDate(): Promise<Array<Booking>>;
     findGigsByDeliveryTime(): Promise<Array<Gig>>;
@@ -251,36 +304,50 @@ export interface backendInterface {
     findMusicByPrice(): Promise<Array<Music>>;
     findProductsByArtist(artistId: Principal): Promise<Array<Product>>;
     findProductsByPrice(): Promise<Array<Product>>;
+    getAllArtistRevenues(): Promise<Array<ArtistRevenue>>;
     getAllArtists(): Promise<AllArtistProfilesResponse>;
     getAllBookings(): Promise<Array<Booking>>;
     getAllGigs(): Promise<Array<Gig>>;
     getAllJobOfferings(): Promise<Array<JobOffering>>;
     getAllMusic(): Promise<Array<Music>>;
+    getAllPaymentTransactions(): Promise<Array<PaymentTransaction>>;
     getAllProducts(): Promise<Array<Product>>;
     getAllServices(): Promise<GetAllServicesResponse>;
+    getAllUsers(): Promise<Array<UserInfo>>;
     getArtistById(id: string): Promise<ArtistProfileResponse>;
+    getArtistRevenue(artistId: Principal): Promise<ArtistRevenue>;
     getAvailableTimeSlots(arg0: Range): Promise<GetAvailableTimeSlotsResponse>;
     getBookingsByCode(arg0: string): Promise<GetBookingsByCodeResponse>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getMusicById(id: string): Promise<Music | null>;
+    getPaymentTransactionHistory(artistId: Principal): Promise<Array<PaymentTransaction>>;
+    getPlatformRevenueMetrics(): Promise<PlatformRevenueMetrics>;
     getServicesByArtist(artistId: Principal): Promise<GetServicesByArtistResponse>;
+    getSiteBranding(): Promise<SiteBranding>;
     getStoreProductConfig(): Promise<StoreProductConfig>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
     getStripeStoreConfig(): Promise<StripeStoreConfig>;
-    grantAdminPrivileges(): Promise<void>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchServicesByCategory(category: string): Promise<SearchServicesByCategoryResponse>;
+    setArtistRevenueSharePercentage(percentage: bigint): Promise<void>;
+    setPlatformCommissionRate(commissionPercentage: bigint): Promise<void>;
     setRequireApprovalFor(jobs: boolean, products: boolean, gigs: boolean): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
     setStripeStoreConfig(config: StripeStoreConfig): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
+    updateArtistProfile(request: UpdateArtistProfileRequest): Promise<void>;
     updateBooking(booking: Booking): Promise<void>;
     updateGig(gig: Gig): Promise<void>;
     updateJobOffering(offering: JobOffering): Promise<void>;
     updateMusic(id: string, newTitle: string, newPrice: bigint, newDescription: string, newCategory: string): Promise<void>;
     updateProduct(id: string, title: string, description: string, price: bigint, productImages: Array<ExternalBlob>, subcategory: string): Promise<void>;
     updateService(id: bigint, request: UpdateServiceRequest): Promise<void>;
-    updateStoreProductConfig(inventoryThreshold: bigint, freeShippingAmount: bigint, taxRate: bigint, categoryLimit: bigint, returnDays: bigint, pricingRules: PricingRule, productCategories: Array<string>, productTags: Array<string>, featuredProducts: Array<string>, productStatuses: Array<string>): Promise<void>;
+    updateSiteBranding(branding: SiteBranding): Promise<void>;
+    updateStoreProductConfig(inventoryThreshold: bigint, freeShippingAmount: bigint, taxRate: bigint, categoryLimit: bigint, returnDays: bigint, filterOptions: Array<StoreProductFilter>, pricingRules: PricingRule, productCategories: Array<string>, productTags: Array<string>, featuredProducts: Array<string>, productStatuses: Array<string>): Promise<void>;
     uploadImage(blob: ExternalBlob): Promise<void>;
 }

@@ -1,147 +1,185 @@
-import { useParams, Link } from '@tanstack/react-router';
-import { useGetArtistById, useGetServicesByArtist } from '../hooks/useQueries';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from '@tanstack/react-router';
+import { useGetArtistById, useGetArtistRevenue } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Calendar, Sparkles } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Loader2, ArrowLeft, Mail, Heart, Edit } from 'lucide-react';
+import { DonationDialog } from '../components/DonationDialog';
+import { EditArtistProfileDialog } from '../components/EditArtistProfileDialog';
 
 export default function ArtistProfilePage() {
-    const { id } = useParams({ from: '/artists/$id' });
-    const { data: artist, isLoading } = useGetArtistById(id);
-    const { data: services } = useGetServicesByArtist(id);
+  const { id } = useParams({ from: '/artists/$id' });
+  const navigate = useNavigate();
+  const { data: artist, isLoading: artistLoading, refetch } = useGetArtistById(id);
+  const { data: artistRevenue } = useGetArtistRevenue(id);
+  const { identity } = useInternetIdentity();
+  const [donationDialogOpen, setDonationDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-    if (isLoading) {
-        return (
-            <div className="container py-12">
-                <Skeleton className="h-12 w-64 mb-8" />
-                <div className="grid lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6">
-                        <Skeleton className="h-96 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                    </div>
-                    <Skeleton className="h-64 w-full" />
-                </div>
-            </div>
-        );
-    }
+  const isOwnProfile = identity?.getPrincipal().toString() === id;
 
-    if (!artist) {
-        return (
-            <div className="container py-12">
-                <Card className="p-12 text-center">
-                    <h2 className="font-display text-3xl font-bold mb-4">Artist Not Found</h2>
-                    <p className="text-muted-foreground mb-6">The artist profile you're looking for doesn't exist.</p>
-                    <Button asChild>
-                        <Link to="/artists">Browse Artists</Link>
-                    </Button>
-                </Card>
-            </div>
-        );
-    }
+  const handleEditSuccess = () => {
+    refetch();
+  };
 
+  if (artistLoading) {
     return (
-        <div className="container py-12">
-            <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <div>
-                        <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">Artist Portfolio</h1>
-                        <p className="text-xl text-muted-foreground">{artist.bio}</p>
-                    </div>
-
-                    {artist.portfolioImages.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-display">Portfolio Gallery</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {artist.portfolioImages.map((image, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="aspect-square rounded-lg overflow-hidden bg-muted"
-                                        >
-                                            <img
-                                                src={image.getDirectURL()}
-                                                alt={`Portfolio ${idx + 1}`}
-                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {services && services.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-display">Available Services</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {services.map((service) => (
-                                        <div
-                                            key={service.id.toString()}
-                                            className="p-4 border rounded-lg hover:border-primary/50 transition-colors"
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-semibold text-lg">{service.name}</h4>
-                                                <span className="text-primary font-bold">
-                                                    ${Number(service.price) / 100}
-                                                </span>
-                                            </div>
-                                            <p className="text-muted-foreground text-sm mb-2">
-                                                {service.description}
-                                            </p>
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <span>{Number(service.duration)} minutes</span>
-                                                {service.category && <Badge variant="outline">{service.category}</Badge>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-display">Skills & Expertise</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-2">
-                                {artist.skills.map((skill, idx) => (
-                                    <Badge key={idx} variant="secondary" className="text-sm">
-                                        {skill}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-display">Contact Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Mail className="h-4 w-4" />
-                                <span className="text-sm">{artist.contactInfo}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Button asChild className="w-full" size="lg">
-                        <Link to="/book/$artistId" params={{ artistId: id }}>
-                            <Calendar className="mr-2 h-5 w-5" />
-                            Book a Service
-                        </Link>
-                    </Button>
-                </div>
-            </div>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
+  }
+
+  if (!artist) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Artist Not Found</h1>
+          <Button onClick={() => navigate({ to: '/' })}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Button variant="ghost" onClick={() => navigate({ to: '/' })} className="mb-6">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-3xl mb-2">Artist Profile</CardTitle>
+                  <CardDescription>ID: {artist.id}</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  {isOwnProfile && (
+                    <Button onClick={() => setEditDialogOpen(true)} variant="outline">
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit Profile
+                    </Button>
+                  )}
+                  {!isOwnProfile && identity && (
+                    <Button onClick={() => setDonationDialogOpen(true)} variant="default">
+                      <Heart className="mr-2 h-4 w-4" />
+                      Donate
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-2">Bio</h3>
+                <p className="text-muted-foreground whitespace-pre-wrap">{artist.bio}</p>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="font-semibold mb-2">Skills</h3>
+                <div className="flex flex-wrap gap-2">
+                  {artist.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h3 className="font-semibold mb-2">Contact Information</h3>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>{artist.contactInfo}</span>
+                </div>
+              </div>
+
+              {isOwnProfile && artistRevenue && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-4">Revenue Summary</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
+                        <p className="text-2xl font-bold">
+                          ${(Number(artistRevenue.totalRevenue) / 100).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Pending</p>
+                        <p className="text-2xl font-bold">
+                          ${(Number(artistRevenue.pendingRevenue) / 100).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Paid Out</p>
+                        <p className="text-2xl font-bold">
+                          ${(Number(artistRevenue.paidRevenue) / 100).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {artist.portfolioImages.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No portfolio images yet</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {artist.portfolioImages.map((image, index) => {
+                    const imageUrl = image.getDirectURL();
+                    return (
+                      <div key={index} className="aspect-square overflow-hidden rounded-lg bg-muted">
+                        <img src={imageUrl} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <DonationDialog
+        open={donationDialogOpen}
+        onOpenChange={setDonationDialogOpen}
+        artistId={artist.id}
+        artistName={artist.bio.split('\n')[0] || 'Artist'}
+      />
+
+      {isOwnProfile && (
+        <EditArtistProfileDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          profile={artist}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+    </div>
+  );
 }

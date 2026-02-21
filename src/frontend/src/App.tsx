@@ -16,17 +16,23 @@ import BookServicePage from './pages/BookServicePage';
 import StorePage from './pages/StorePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import MusicLibraryPage from './pages/MusicLibraryPage';
-import CartPage from './pages/CartPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailurePage from './pages/PaymentFailurePage';
 import AdminUserManagementPage from './pages/AdminUserManagementPage';
 import AdminSiteConfigPage from './pages/AdminSiteConfigPage';
 import AdminStoreSettingsPage from './pages/AdminStoreSettingsPage';
 import AdminStripeSettingsPage from './pages/AdminStripeSettingsPage';
+import AdminBrandingPage from './pages/AdminBrandingPage';
+import AdminRevenueDashboardPage from './pages/AdminRevenueDashboardPage';
+import AdminCommissionSettingsPage from './pages/AdminCommissionSettingsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import AccountDashboardPage from './pages/AccountDashboardPage';
 import ProductManagementPage from './pages/ProductManagementPage';
 import PaymentSettingsPage from './pages/PaymentSettingsPage';
 import AdminSetupPage from './pages/AdminSetupPage';
+import StripeConnectOnboardingPage from './pages/StripeConnectOnboardingPage';
+import ArtistItemManagementPage from './pages/ArtistItemManagementPage';
+import ArtistOnboardingPage from './pages/ArtistOnboardingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -119,12 +125,6 @@ const musicRoute = createRoute({
   component: MusicLibraryPage,
 });
 
-const cartRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/cart',
-  component: CartPage,
-});
-
 const paymentSuccessRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/payment-success',
@@ -135,6 +135,12 @@ const paymentFailureRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/payment-failure',
   component: PaymentFailurePage,
+});
+
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/dashboard',
+  component: AdminDashboardPage,
 });
 
 const adminUsersRoute = createRoute({
@@ -161,6 +167,24 @@ const adminStripeSettingsRoute = createRoute({
   component: AdminStripeSettingsPage,
 });
 
+const adminBrandingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/branding',
+  component: AdminBrandingPage,
+});
+
+const adminRevenueRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/revenue',
+  component: AdminRevenueDashboardPage,
+});
+
+const adminCommissionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/commission',
+  component: AdminCommissionSettingsPage,
+});
+
 const accountDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/account/dashboard',
@@ -185,6 +209,24 @@ const adminSetupRoute = createRoute({
   component: AdminSetupPage,
 });
 
+const stripeConnectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/stripe-connect',
+  component: StripeConnectOnboardingPage,
+});
+
+const artistItemsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/artist/items',
+  component: ArtistItemManagementPage,
+});
+
+const artistOnboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/artist/onboarding',
+  component: ArtistOnboardingPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   artistsRoute,
@@ -199,17 +241,23 @@ const routeTree = rootRoute.addChildren([
   storeRoute,
   productDetailRoute,
   musicRoute,
-  cartRoute,
   paymentSuccessRoute,
   paymentFailureRoute,
+  adminDashboardRoute,
   adminUsersRoute,
   adminSiteConfigRoute,
   adminStoreSettingsRoute,
   adminStripeSettingsRoute,
+  adminBrandingRoute,
+  adminRevenueRoute,
+  adminCommissionRoute,
   accountDashboardRoute,
   productManagementRoute,
   paymentSettingsRoute,
   adminSetupRoute,
+  stripeConnectRoute,
+  artistItemsRoute,
+  artistOnboardingRoute,
 ]);
 
 const router = createRouter({ routeTree });

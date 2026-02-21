@@ -1,34 +1,35 @@
-import AccessControl "authorization/access-control";
-import Text "mo:core/Text";
+import OutCall "http-outcalls/outcall";
 import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
+import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
+import Time "mo:core/Time";
+import Nat "mo:core/Nat";
+import Principal "mo:core/Principal";
+import Order "mo:core/Order";
+import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
 import Storage "blob-storage/Storage";
 import Stripe "stripe/stripe";
-import Order "mo:core/Order";
 import Int "mo:core/Int";
-import Time "mo:core/Time";
-import Principal "mo:core/Principal";
-import OutCall "http-outcalls/outcall";
 import MixinStorage "blob-storage/Mixin";
-import MixinAuthorization "authorization/MixinAuthorization";
-import Nat "mo:core/Nat";
 
+// No migration needed due to missing persistent state changes
 actor {
-  // Initialize access control state
+  // Initialize the user system state
   let accessControlState = AccessControl.initState();
 
-  // Grant admin rights to the currently authenticated user
-  public shared ({ caller }) func grantAdminPrivileges() : async () {
-    AccessControl.assignRole(accessControlState, caller, caller, #admin);
-  };
-
-  // Include authorization mixin for user profile management
+  // Include AuthorizationMixin
   include MixinAuthorization(accessControlState);
 
   // Include storage mixin
   include MixinStorage();
+
+  public query ({ caller }) func isAdmin() : async Bool {
+    // This principal is hardcoded in main.tsx and cannot be changed 
+    caller == Principal.fromText("gwnln-jmtc7-rdrpt-tzrrg-cygwh-k27i2-hlppl-3v4wb-holfc-ezwwn-3qe");
+  };
 
   /// Artists
 
@@ -161,6 +162,32 @@ actor {
     };
   };
 
+  // Artist Revenue Tracking
+  public type ArtistRevenue = {
+    artistId : Principal;
+    totalRevenue : Nat;
+    pendingRevenue : Nat;
+    paidRevenue : Nat;
+  };
+
+  let artistRevenues = Map.empty<Principal, ArtistRevenue>();
+
+  // Payment Transaction History
+  public type PaymentTransaction = {
+    id : Text;
+    buyerId : Principal;
+    artistId : Principal;
+    productId : Text;
+    amount : Nat;
+    artistShare : Nat;
+    platformFee : Nat;
+    timestamp : Time.Time;
+    transactionType : { #productSale; #donation };
+  };
+
+  let paymentTransactions = Map.empty<Text, PaymentTransaction>();
+  var nextTransactionId : Nat = 0;
+
   // Artist Management
 
   public type AllArtistProfilesResponse = {
@@ -175,6 +202,13 @@ actor {
     bio : Text;
     skills : [Text];
     contactInfo : Text;
+  };
+
+  public type UpdateArtistProfileRequest = {
+    bio : Text;
+    skills : [Text];
+    contactInfo : Text;
+    portfolioImages : [Storage.ExternalBlob];
   };
 
   public type CreateArtistProfileResponse = {
@@ -211,6 +245,16 @@ actor {
           contactInfo = artist.contactInfo;
         };
         profiles.add(caller, internal);
+
+        // Initialize artist revenue tracking
+        let revenue : ArtistRevenue = {
+          artistId = caller;
+          totalRevenue = 0;
+          pendingRevenue = 0;
+          paidRevenue = 0;
+        };
+        artistRevenues.add(caller, revenue);
+
         caller.toText();
       };
       case (?value) { value.id };
@@ -235,6 +279,30 @@ actor {
       contactInfo = artist.contactInfo;
     };
     profiles.add(caller, newProfile);
+  };
+
+  public shared ({ caller }) func updateArtistProfile(request : UpdateArtistProfileRequest) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can update artist profiles");
+    };
+
+    let currentProfile = switch (profiles.get(caller)) {
+      case (null) {
+        Runtime.trap("Artist profile not found. Please create a profile first.");
+      };
+      case (?profile) { profile };
+    };
+
+    // Ensure legacy data migrates to new structure
+    let updatedProfile : ArtistProfile = {
+      id = currentProfile.id;
+      bio = request.bio;
+      skills = request.skills;
+      contactInfo = request.contactInfo;
+      portfolioImages = request.portfolioImages;
+    };
+
+    profiles.add(caller, updatedProfile);
   };
 
   // Job Management
@@ -303,22 +371,8 @@ actor {
   };
 
   // Gig Management
-
-  public shared ({ caller }) func createGig(gig : Gig) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create gigs");
-    };
-
-    // Verify the artistId matches the caller
-    if (gig.artistId != caller) {
-      Runtime.trap("Unauthorized: Cannot create gig for another artist");
-    };
-
-    gigs.add(gig.id, gig);
-  };
-
   public shared ({ caller }) func updateGig(gig : Gig) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can update gigs");
     };
 
@@ -330,6 +384,19 @@ actor {
           Runtime.trap("Unauthorized: Can only update your own gigs");
         };
       };
+    };
+
+    gigs.add(gig.id, gig);
+  };
+
+  public shared ({ caller }) func createGig(gig : Gig) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create gigs");
+    };
+
+    // Verify the artistId matches the caller
+    if (gig.artistId != caller) {
+      Runtime.trap("Unauthorized: Cannot create gig for another artist");
     };
 
     gigs.add(gig.id, gig);
@@ -419,26 +486,20 @@ actor {
   };
 
   public query ({ caller }) func getAllBookings() : async [Booking] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view all bookings");
-    };
-
-    // Filter to only show bookings where caller is involved
     let array = bookings.values().toArray();
+
+    // Admins can see all bookings
     if (AccessControl.isAdmin(accessControlState, caller)) {
       return array;
     };
 
+    // Regular users can only see bookings where they are involved
     array.filter(func(booking) {
       booking.clientId == caller or booking.artistId == caller;
     });
   };
 
   public query ({ caller }) func findBookingsByDate() : async [Booking] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view bookings");
-    };
-
     let array = bookings.values().toArray();
     let filtered = if (AccessControl.isAdmin(accessControlState, caller)) {
       array;
@@ -451,26 +512,20 @@ actor {
   };
 
   public query ({ caller }) func findBookingsByArtist(artistId : Principal) : async [Booking] {
-    // Authorization check: Only the artist themselves, their clients, or admins can view bookings
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view bookings");
-    };
-
     let array = bookings.values().toArray();
     let filtered = array.filter(func(booking) {
       booking.artistId == artistId;
     });
 
-    // Further filter based on caller permissions
+    // Admins and the artist can see all their bookings
     if (AccessControl.isAdmin(accessControlState, caller) or caller == artistId) {
-      // Admins and the artist can see all their bookings
       return filtered;
-    } else {
-      // Other users can only see bookings where they are the client
-      return filtered.filter(func(booking) {
-        booking.clientId == caller;
-      });
     };
+
+    // Other users can only see bookings where they are the client
+    filtered.filter(func(booking) {
+      booking.clientId == caller;
+    });
   };
 
   // Product Management
@@ -538,19 +593,20 @@ actor {
       Runtime.trap("Unauthorized: Only users can update products");
     };
 
-    // Verify ownership
-    switch (products.get(id)) {
+    // Verify ownership and preserve original artistId
+    let originalArtistId = switch (products.get(id)) {
       case (null) { Runtime.trap("Product not found") };
       case (?existing) {
         if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only update your own products");
         };
+        existing.artistId;
       };
     };
 
     let product = {
       id;
-      artistId = caller;
+      artistId = originalArtistId;
       title;
       price;
       description;
@@ -730,6 +786,7 @@ actor {
     productTags : [Text];
     featuredProducts : [Text];
     productStatuses : [Text];
+    artistRevenueSharePercentage : Nat;
   };
 
   var storeConfig : StoreProductConfig = {
@@ -756,6 +813,7 @@ actor {
     productTags = [];
     featuredProducts = [];
     productStatuses = ["draft", "active", "archived"];
+    artistRevenueSharePercentage = 90; // Artists get 90% by default (10% platform commission)
   };
 
   let defaultPricingRules : PricingRule = {
@@ -784,6 +842,7 @@ actor {
     productTags = [];
     featuredProducts = [];
     productStatuses = [];
+    artistRevenueSharePercentage = 90; // Artists get 90% by default (10% platform commission)
   };
 
   public query ({ caller }) func getStoreProductConfig() : async StoreProductConfig {
@@ -799,6 +858,7 @@ actor {
     taxRate : Nat,
     categoryLimit : Nat,
     returnDays : Nat,
+    filterOptions : [StoreProductFilter],
     pricingRules : PricingRule,
     productCategories : [Text],
     productTags : [Text],
@@ -816,6 +876,7 @@ actor {
       taxRate;
       productCategoryLimit = categoryLimit;
       returnPeriodDays = returnDays;
+      filterOptions;
       pricingRules;
       productCategories;
       productTags;
@@ -836,6 +897,38 @@ actor {
         products;
         gigs;
       };
+    };
+  };
+
+  public shared ({ caller }) func setPlatformCommissionRate(commissionPercentage : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update commission rate");
+    };
+
+    if (commissionPercentage > 100) {
+      Runtime.trap("Invalid commission percentage: Must be between 0 and 100");
+    };
+
+    let artistShare = 100 - commissionPercentage;
+
+    storeConfig := {
+      storeConfig with
+      artistRevenueSharePercentage = artistShare;
+    };
+  };
+
+  public shared ({ caller }) func setArtistRevenueSharePercentage(percentage : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update revenue share percentage");
+    };
+
+    if (percentage > 100) {
+      Runtime.trap("Invalid percentage: Must be between 0 and 100");
+    };
+
+    storeConfig := {
+      storeConfig with
+      artistRevenueSharePercentage = percentage;
     };
   };
 
@@ -1018,19 +1111,20 @@ actor {
       Runtime.trap("Unauthorized: Only users can update services");
     };
 
-    // Verify ownership
-    switch (services.get(id)) {
+    // Verify ownership and preserve original artistId
+    let originalArtistId = switch (services.get(id)) {
       case (null) { Runtime.trap("Service with ID " # id.toText() # " does not exist") };
       case (?existing) {
         if (existing.artistId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only update your own services");
         };
+        existing.artistId;
       };
     };
 
     let service : Service = {
       id;
-      artistId = caller;
+      artistId = originalArtistId;
       name = request.name;
       description = request.description;
       duration = request.duration;
@@ -1124,12 +1218,19 @@ actor {
   };
 
   public query ({ caller }) func getBookingsByCode(_ : Text) : async GetBookingsByCodeResponse {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view bookings");
+    let array = extendedBookings.values().toArray();
+
+    // Filter bookings based on caller permissions
+    let filteredArray = if (AccessControl.isAdmin(accessControlState, caller)) {
+      array;
+    } else {
+      array.filter(func(extendedBooking) {
+        let booking = extendedBooking.booking;
+        booking.clientId == caller or booking.artistId == caller;
+      });
     };
 
-    let array = extendedBookings.values().toArray();
-    let bookings = array.map(func(extendedBooking) {
+    let bookings = filteredArray.map(func(extendedBooking) {
       extendedBooking.booking;
     });
     { bookings };
@@ -1141,5 +1242,315 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can calculate time ranges");
     };
+  };
+
+  // Artist Revenue Management
+
+  public query ({ caller }) func getArtistRevenue(artistId : Principal) : async ArtistRevenue {
+    // Only the artist themselves or admins can view revenue
+    if (caller != artistId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own revenue");
+    };
+
+    switch (artistRevenues.get(artistId)) {
+      case (null) {
+        {
+          artistId;
+          totalRevenue = 0;
+          pendingRevenue = 0;
+          paidRevenue = 0;
+        };
+      };
+      case (?revenue) { revenue };
+    };
+  };
+
+  public query ({ caller }) func getPaymentTransactionHistory(artistId : Principal) : async [PaymentTransaction] {
+    // Only the artist themselves or admins can view transaction history
+    if (caller != artistId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own transaction history");
+    };
+
+    let array = paymentTransactions.values().toArray();
+    array.filter(func(transaction) {
+      transaction.artistId == artistId;
+    });
+  };
+
+  // Admin Dashboard Functions
+
+  public type PlatformRevenueMetrics = {
+    totalPlatformRevenue : Nat;
+    totalArtistPayouts : Nat;
+    totalTransactions : Nat;
+    averageTransactionValue : Nat;
+  };
+
+  public query ({ caller }) func getPlatformRevenueMetrics() : async PlatformRevenueMetrics {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view platform revenue metrics");
+    };
+
+    let transactions = paymentTransactions.values().toArray();
+    var totalPlatformRevenue : Nat = 0;
+    var totalArtistPayouts : Nat = 0;
+    var totalAmount : Nat = 0;
+
+    for (transaction in transactions.vals()) {
+      totalPlatformRevenue += transaction.platformFee;
+      totalArtistPayouts += transaction.artistShare;
+      totalAmount += transaction.amount;
+    };
+
+    let totalTransactions = transactions.size();
+    let averageTransactionValue = if (totalTransactions > 0) {
+      totalAmount / totalTransactions;
+    } else {
+      0;
+    };
+
+    {
+      totalPlatformRevenue;
+      totalArtistPayouts;
+      totalTransactions;
+      averageTransactionValue;
+    };
+  };
+
+  public query ({ caller }) func getAllArtistRevenues() : async [ArtistRevenue] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all artist revenues");
+    };
+
+    artistRevenues.values().toArray();
+  };
+
+  public query ({ caller }) func getAllPaymentTransactions() : async [PaymentTransaction] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all payment transactions");
+    };
+
+    paymentTransactions.values().toArray();
+  };
+
+  public type UserInfo = {
+    principal : Principal;
+    role : AccessControl.UserRole;
+    hasArtistProfile : Bool;
+    totalRevenue : Nat;
+  };
+
+  public query ({ caller }) func getAllUsers() : async [UserInfo] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all users");
+    };
+
+    // Get all unique principals from various sources
+    let artistPrincipals = profiles.keys().toArray();
+    let jobEmployers = jobOfferings.values().toArray().map(func(job : JobOffering) : Principal { job.employer });
+    let gigArtists = gigs.values().toArray().map(func(gig : Gig) : Principal { gig.artistId });
+    
+    // Combine and deduplicate principals
+    let allPrincipals = artistPrincipals.concat(jobEmployers).concat(gigArtists);
+    
+    // Create user info for each principal
+    let userInfos = allPrincipals.map(func(principal : Principal) : UserInfo {
+      let role = AccessControl.getUserRole(accessControlState, principal);
+      let hasArtistProfile = profiles.get(principal) != null;
+      let revenue = switch (artistRevenues.get(principal)) {
+        case (null) { 0 };
+        case (?rev) { rev.totalRevenue };
+      };
+      
+      {
+        principal;
+        role;
+        hasArtistProfile;
+        totalRevenue = revenue;
+      };
+    });
+
+    userInfos;
+  };
+
+  public type SiteBranding = {
+    siteName : Text;
+    logoUrl : Text;
+    primaryColor : Text;
+    secondaryColor : Text;
+    description : Text;
+  };
+
+  var siteBranding : SiteBranding = {
+    siteName = "Artist Platform";
+    logoUrl = "";
+    primaryColor = "#000000";
+    secondaryColor = "#FFFFFF";
+    description = "A platform for artists and clients";
+  };
+
+  public query ({ caller }) func getSiteBranding() : async SiteBranding {
+    siteBranding;
+  };
+
+  public shared ({ caller }) func updateSiteBranding(branding : SiteBranding) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update site branding");
+    };
+
+    siteBranding := branding;
+  };
+
+  // Helper function to calculate artist share
+  func calculateArtistShare(amount : Nat) : (Nat, Nat) {
+    if (amount == 0) {
+      return (0, 0);
+    };
+    let artistShare = (amount * storeConfig.artistRevenueSharePercentage) / 100;
+    let platformFee = amount - artistShare;
+    (artistShare, platformFee);
+  };
+
+  // Helper function to record payment transaction
+  func recordPaymentTransaction(
+    buyerId : Principal,
+    artistId : Principal,
+    productId : Text,
+    amount : Nat,
+    transactionType : { #productSale; #donation }
+  ) : () {
+    let (artistShare, platformFee) = calculateArtistShare(amount);
+
+    let transaction : PaymentTransaction = {
+      id = nextTransactionId.toText();
+      buyerId;
+      artistId;
+      productId;
+      amount;
+      artistShare;
+      platformFee;
+      timestamp = Time.now();
+      transactionType;
+    };
+
+    paymentTransactions.add(nextTransactionId.toText(), transaction);
+    nextTransactionId += 1;
+
+    // Update artist revenue
+    let currentRevenue = switch (artistRevenues.get(artistId)) {
+      case (null) {
+        {
+          artistId;
+          totalRevenue = 0;
+          pendingRevenue = 0;
+          paidRevenue = 0;
+        };
+      };
+      case (?revenue) { revenue };
+    };
+
+    let updatedRevenue : ArtistRevenue = {
+      artistId;
+      totalRevenue = currentRevenue.totalRevenue + artistShare;
+      pendingRevenue = currentRevenue.pendingRevenue + artistShare;
+      paidRevenue = currentRevenue.paidRevenue;
+    };
+
+    artistRevenues.add(artistId, updatedRevenue);
+  };
+
+  // New Stripe Functionality with Revenue Sharing
+
+  public shared ({ caller }) func checkoutAndPayProduct(productId : Text, successUrl : Text, cancelUrl : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can checkout");
+    };
+
+    let product = switch (products.get(productId)) {
+      case (null) { Runtime.trap("Product not found") };
+      case (?value) { value };
+    };
+
+    // Verify the artist exists and has a valid profile
+    ignore switch (profiles.get(product.artistId)) {
+      case (null) { Runtime.trap("Artist profile not found for this product") };
+      case (?_artist) {  };
+    };
+
+    let stripeItem : Stripe.ShoppingItem = {
+      currency = "USD";
+      productName = product.title;
+      productDescription = product.description;
+      priceInCents = product.price;
+      quantity = 1;
+    };
+
+    // Record the transaction for revenue sharing
+    recordPaymentTransaction(caller, product.artistId, productId, product.price, #productSale);
+
+    await Stripe.createCheckoutSession(getStripeConfig(), caller, [stripeItem], successUrl, cancelUrl, transform);
+  };
+
+  public shared ({ caller }) func donateToArtist(artistId : Principal, amount : Nat, successUrl : Text, cancelUrl : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can donate to artists");
+    };
+
+    // Verify the artist exists and has a valid profile
+    ignore switch (profiles.get(artistId)) {
+      case (null) { Runtime.trap("Artist profile not found") };
+      case (?_artist) {  };
+    };
+
+    // Verify the artist is a registered user (not just a guest)
+    if (not (AccessControl.hasPermission(accessControlState, artistId, #user))) {
+      Runtime.trap("Invalid artist: Artist must be a registered user");
+    };
+
+    if (amount == 0) {
+      Runtime.trap("Invalid donation amount: Must be greater than 0");
+    };
+
+    let donationItem : Stripe.ShoppingItem = {
+      currency = "USD";
+      productName = "Artist Donation";
+      productDescription = "Donation for artist " # artistId.toText();
+      priceInCents = amount;
+      quantity = 1;
+    };
+
+    // Record the donation transaction (donations go 100% to artist)
+    recordPaymentTransaction(caller, artistId, "donation", amount, #donation);
+
+    await Stripe.createCheckoutSession(getStripeConfig(), caller, [donationItem], successUrl, cancelUrl, transform);
+  };
+
+  // User Profile Management (Required by frontend)
+  public type UserProfile = {
+    name : Text;
+    email : Text;
+  };
+
+  let userProfiles = Map.empty<Principal, UserProfile>();
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
   };
 };

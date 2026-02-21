@@ -4,127 +4,110 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIsCallerAdmin } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Package, Settings, Shield } from 'lucide-react';
+import { Package, CreditCard, Settings, Loader2 } from 'lucide-react';
 
 export default function AccountDashboardPage() {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const { data: isAdmin, isLoading: adminLoading, isFetched: adminFetched } = useIsCallerAdmin();
+  const { data: isAdmin, isLoading: isAdminLoading } = useIsCallerAdmin();
 
-  const isAuthenticated = !!identity;
-  const principalId = identity?.getPrincipal().toString() || 'Not logged in';
+  if (!identity) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to access your account dashboard</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
-  const showAdminSetup = isAuthenticated && !adminLoading && adminFetched && !isAdmin;
-  const showStripeSettings = isAuthenticated && !adminLoading && adminFetched && isAdmin;
+  if (isAdminLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Account Dashboard</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences</p>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">Account Dashboard</h1>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
+        </div>
 
-      {/* Principal ID Card */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Account Information</CardTitle>
-          <CardDescription>Your Internet Identity principal</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-muted-foreground" />
-            <code className="text-sm bg-muted px-2 py-1 rounded break-all">{principalId}</code>
-          </div>
-          {showAdminSetup && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-900 dark:text-blue-100 mb-2">
-                You don't have admin privileges yet. Grant yourself admin access to configure Stripe and other settings.
-              </p>
-              <Button
-                onClick={() => navigate({ to: '/admin-setup' })}
-                variant="default"
-                size="sm"
-              >
-                Grant Admin Access
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Principal ID:</span>
+                  <span className="text-sm text-muted-foreground font-mono">{identity.getPrincipal().toString()}</span>
+                </div>
+                {isAdmin && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Role:</span>
+                    <span className="text-sm text-muted-foreground">Administrator</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Product Management */}
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate({ to: '/account/products' })}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Product Management</CardTitle>
-                <CardDescription>Manage your products</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              View, edit, and manage all your listed products in one place.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Payment Settings */}
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate({ to: '/account/payments' })}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Payment Settings</CardTitle>
-                <CardDescription>View payment information</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              View your payment methods and transaction history.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Stripe Settings - Admin Only */}
-        {showStripeSettings && (
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20" onClick={() => navigate({ to: '/admin/stripe-settings' })}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate({ to: '/account/products' })}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Settings className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Package className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    Stripe Settings
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">Admin</span>
-                  </CardTitle>
-                  <CardDescription>Configure payment processing</CardDescription>
+                  <CardTitle>Product Management</CardTitle>
+                  <CardDescription>Manage your products and listings</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Configure Stripe integration for accepting payments on your marketplace.
-              </p>
-            </CardContent>
           </Card>
-        )}
-      </div>
 
-      {adminLoading && (
-        <div className="mt-8 text-center text-muted-foreground">
-          <p>Loading account permissions...</p>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate({ to: '/account/payments' })}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Payment Settings</CardTitle>
+                  <CardDescription>View payment methods and history</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {isAdmin && (
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate({ to: '/admin/stripe-settings' })}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Settings className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Stripe Settings</CardTitle>
+                    <CardDescription>Configure payment processing (Admin)</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

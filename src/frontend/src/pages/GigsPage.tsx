@@ -1,4 +1,4 @@
-import { useGetAllGigs, useCreateGig } from '../hooks/useQueries';
+import { useGetAllGigs, useCreateGig, useDeleteGig } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,19 +9,37 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles, Plus, Clock, DollarSign } from 'lucide-react';
+import { Sparkles, Plus, Clock, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { EditGigDialog } from '../components/EditGigDialog';
+import type { Gig } from '../backend';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function GigsPage() {
-    const { data: gigs, isLoading } = useGetAllGigs();
+    const { data: gigs, isLoading, refetch } = useGetAllGigs();
     const { identity } = useInternetIdentity();
     const createGig = useCreateGig();
+    const deleteGig = useDeleteGig();
     const [open, setOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [pricing, setPricing] = useState('');
     const [deliveryDays, setDeliveryDays] = useState('');
+
+    const principalId = identity?.getPrincipal().toString();
 
     const handleCreate = async () => {
         if (!identity || !title.trim() || !description.trim() || !pricing || !deliveryDays) {
@@ -49,6 +67,38 @@ export default function GigsPage() {
             toast.error('Failed to create gig');
             console.error(error);
         }
+    };
+
+    const handleEditClick = (gig: Gig) => {
+        setSelectedGig(gig);
+        setEditDialogOpen(true);
+    };
+
+    const handleDeleteClick = (gig: Gig) => {
+        setSelectedGig(gig);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selectedGig) return;
+
+        try {
+            await deleteGig.mutateAsync(selectedGig.id);
+            toast.success('Gig deleted successfully!');
+            setDeleteDialogOpen(false);
+            setSelectedGig(null);
+        } catch (error: any) {
+            console.error('Error deleting gig:', error);
+            toast.error(error.message || 'Failed to delete gig');
+        }
+    };
+
+    const handleEditSuccess = () => {
+        refetch();
+    };
+
+    const isOwnGig = (gig: Gig) => {
+        return principalId && gig.artistId.toString() === principalId;
     };
 
     return (
@@ -171,11 +221,34 @@ export default function GigsPage() {
                                         days
                                     </span>
                                 </div>
-                                <Button asChild className="w-full">
-                                    <Link to="/gigs/$id" params={{ id: gig.id }}>
-                                        View Details
-                                    </Link>
-                                </Button>
+                                {isOwnGig(gig) ? (
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => handleEditClick(gig)}
+                                        >
+                                            <Edit className="h-4 w-4 mr-1" />
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => handleDeleteClick(gig)}
+                                        >
+                                            <Trash2 className="h-4 w-4 mr-1" />
+                                            Delete
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button asChild className="w-full">
+                                        <Link to="/gigs/$id" params={{ id: gig.id }}>
+                                            View Details
+                                        </Link>
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     ))}
@@ -186,6 +259,34 @@ export default function GigsPage() {
                     <h3 className="font-display text-2xl font-semibold mb-2">No Gigs Available</h3>
                     <p className="text-muted-foreground">Be the first to offer your creative services!</p>
                 </Card>
+            )}
+
+            {selectedGig && (
+                <>
+                    <EditGigDialog
+                        open={editDialogOpen}
+                        onOpenChange={setEditDialogOpen}
+                        gig={selectedGig}
+                        onSuccess={handleEditSuccess}
+                    />
+
+                    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Gig</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to delete "{selectedGig.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             )}
         </div>
     );

@@ -1,32 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type {
+import {
   ArtistProfile,
-  CreateArtistProfileRequest,
   JobOffering,
   Gig,
   Booking,
   Product,
   Music,
   Service,
-  CreateServiceRequest,
-  UpdateServiceRequest,
-  DeleteServiceRequest,
-  BookServiceRequest,
-  ShoppingItem,
   StoreProductConfig,
-  PricingRule,
   StripeStoreConfig,
   UserRole,
+  ArtistRevenue,
+  PaymentTransaction,
+  ShoppingItem,
+  PricingRule,
+  StoreProductFilter,
+  UpdateArtistProfileRequest,
+  StripeConfiguration,
+  PlatformRevenueMetrics,
+  UserInfo,
+  SiteBranding,
 } from '../backend';
-import { ExternalBlob } from '../backend';
-import { Principal } from '@dfinity/principal';
+import { Principal } from '@icp-sdk/core/principal';
 
 // Artists
 export function useGetAllArtists() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<ArtistProfile[]>({
     queryKey: ['artists'],
     queryFn: async () => {
       if (!actor) return [];
@@ -40,12 +42,17 @@ export function useGetAllArtists() {
 export function useGetArtistById(id: string) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<ArtistProfile | null>({
     queryKey: ['artist', id],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      const response = await actor.getArtistById(id);
-      return response.profile;
+      if (!actor || !id) return null;
+      try {
+        const response = await actor.getArtistById(id);
+        return response.profile;
+      } catch (error) {
+        console.error('Error fetching artist:', error);
+        return null;
+      }
     },
     enabled: !!actor && !isFetching && !!id,
   });
@@ -56,7 +63,7 @@ export function useCreateArtistProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profile: CreateArtistProfileRequest) => {
+    mutationFn: async (profile: { bio: string; skills: string[]; contactInfo: string }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createArtistProfile(profile);
     },
@@ -66,14 +73,14 @@ export function useCreateArtistProfile() {
   });
 }
 
-export function useAddPortfolioImage() {
+export function useUpdateArtistProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (blob: ExternalBlob) => {
+    mutationFn: async (request: UpdateArtistProfileRequest) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addPortfolioImage(blob);
+      return actor.updateArtistProfile(request);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artists'] });
@@ -85,8 +92,8 @@ export function useAddPortfolioImage() {
 export function useGetAllJobOfferings() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['jobs'],
+  return useQuery<JobOffering[]>({
+    queryKey: ['jobOfferings'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllJobOfferings();
@@ -105,7 +112,7 @@ export function useCreateJobOffering() {
       return actor.createJobOffering(offering);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobOfferings'] });
     },
   });
 }
@@ -120,7 +127,7 @@ export function useUpdateJobOffering() {
       return actor.updateJobOffering(offering);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobOfferings'] });
     },
   });
 }
@@ -135,7 +142,7 @@ export function useDeleteJobOffering() {
       return actor.deleteJobOffering(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobOfferings'] });
     },
   });
 }
@@ -144,13 +151,27 @@ export function useDeleteJobOffering() {
 export function useGetAllGigs() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<Gig[]>({
     queryKey: ['gigs'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllGigs();
     },
     enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetGigById(id: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Gig | null>({
+    queryKey: ['gig', id],
+    queryFn: async () => {
+      if (!actor || !id) return null;
+      const gigs = await actor.getAllGigs();
+      return gigs.find((g) => g.id === id) || null;
+    },
+    enabled: !!actor && !isFetching && !!id,
   });
 }
 
@@ -199,70 +220,11 @@ export function useDeleteGig() {
   });
 }
 
-// Bookings
-export function useGetAllBookings() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['bookings'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllBookings();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useCreateBooking() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (booking: Booking) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.createBooking(booking);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
-  });
-}
-
-export function useUpdateBooking() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (booking: Booking) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateBooking(booking);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
-  });
-}
-
-export function useDeleteBooking() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteBooking(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
-  });
-}
-
 // Products
 export function useGetAllProducts() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: async () => {
       if (!actor) return [];
@@ -272,16 +234,16 @@ export function useGetAllProducts() {
   });
 }
 
-export function useGetProductsByArtist(artistId: string) {
+export function useGetProductsByArtist(artistId: Principal) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['products', 'artist', artistId],
+  return useQuery<Product[]>({
+    queryKey: ['products', 'artist', artistId.toString()],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.findProductsByArtist(Principal.fromText(artistId));
+      return actor.findProductsByArtist(artistId);
     },
-    enabled: !!actor && !isFetching && !!artistId,
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -290,20 +252,13 @@ export function useCreateProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (product: {
-      id: string;
-      title: string;
-      description: string;
-      price: bigint;
-      productImages: ExternalBlob[];
-      subcategory: string;
-    }) => {
+    mutationFn: async (product: any) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createProduct(
         product.id,
         product.title,
         product.description,
-        product.price,
+        BigInt(product.price),
         product.productImages,
         product.subcategory
       );
@@ -319,20 +274,13 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (product: {
-      id: string;
-      title: string;
-      description: string;
-      price: bigint;
-      productImages: ExternalBlob[];
-      subcategory: string;
-    }) => {
+    mutationFn: async (product: any) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateProduct(
         product.id,
         product.title,
         product.description,
-        product.price,
+        BigInt(product.price),
         product.productImages,
         product.subcategory
       );
@@ -358,76 +306,28 @@ export function useDeleteProduct() {
   });
 }
 
-export interface BulkProductItem {
-  file: File;
-  blob: ExternalBlob;
-  category: string;
-  subcategory: string;
-  price: number;
-  description: string;
-}
-
-export interface BulkProductResult {
-  productId: string;
-  fileName: string;
-  success: boolean;
-  error?: string;
-}
-
-export function useBulkCreateProducts() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (items: BulkProductItem[]): Promise<BulkProductResult[]> => {
-      if (!actor) throw new Error('Actor not available');
-
-      const results: BulkProductResult[] = [];
-
-      for (const item of items) {
-        const productId = `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-        try {
-          await actor.createProduct(
-            productId,
-            item.file.name.replace(/\.[^/.]+$/, ''),
-            item.description,
-            BigInt(Math.round(item.price * 100)),
-            [item.blob],
-            item.subcategory
-          );
-          results.push({
-            productId,
-            fileName: item.file.name,
-            success: true,
-          });
-        } catch (error) {
-          results.push({
-            productId,
-            fileName: item.file.name,
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      }
-
-      return results;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-  });
-}
-
 // Music
 export function useGetAllMusic() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<Music[]>({
     queryKey: ['music'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllMusic();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetMusicByArtist(artistId: Principal) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Music[]>({
+    queryKey: ['music', 'artist', artistId.toString()],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.findMusicByArtist(artistId);
     },
     enabled: !!actor && !isFetching,
   });
@@ -438,20 +338,13 @@ export function useCreateMusic() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (music: {
-      id: string;
-      title: string;
-      audioFileBlob: ExternalBlob;
-      price: bigint;
-      description: string;
-      category: string;
-    }) => {
+    mutationFn: async (music: any) => {
       if (!actor) throw new Error('Actor not available');
       return actor.createMusic(
         music.id,
         music.title,
         music.audioFileBlob,
-        music.price,
+        BigInt(music.price),
         music.description,
         music.category
       );
@@ -467,18 +360,12 @@ export function useUpdateMusic() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (music: {
-      id: string;
-      title: string;
-      price: bigint;
-      description: string;
-      category: string;
-    }) => {
+    mutationFn: async (music: any) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateMusic(
         music.id,
         music.title,
-        music.price,
+        BigInt(music.price),
         music.description,
         music.category
       );
@@ -504,132 +391,96 @@ export function useDeleteMusic() {
   });
 }
 
-// Services
-export function useGetAllServices() {
+// Bookings
+export function useGetAllBookings() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['services'],
+  return useQuery<Booking[]>({
+    queryKey: ['bookings'],
     queryFn: async () => {
       if (!actor) return [];
-      const response = await actor.getAllServices();
-      return response.services;
+      return actor.getAllBookings();
     },
     enabled: !!actor && !isFetching,
   });
 }
 
+// Services
 export function useGetServicesByArtist(artistId: string) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Service[]>({
     queryKey: ['services', 'artist', artistId],
     queryFn: async () => {
-      if (!actor || !artistId) return [];
-      try {
-        const principal = Principal.fromText(artistId);
-        const response = await actor.getServicesByArtist(principal);
-        return response.services;
-      } catch (error) {
-        console.error('Error fetching services:', error);
-        return [];
-      }
+      if (!actor) return [];
+      const artistPrincipal = Principal.fromText(artistId);
+      const response = await actor.getServicesByArtist(artistPrincipal);
+      return response.services;
     },
     enabled: !!actor && !isFetching && !!artistId,
   });
 }
 
-export function useCreateService() {
+// Admin
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useIsAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllUsers() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<UserInfo[]>({
+    queryKey: ['users'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllUsers();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAssignUserRole() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (service: CreateServiceRequest) => {
+    mutationFn: async ({ user, role }: { user: Principal; role: UserRole }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createService(service);
+      return actor.assignCallerUserRole(user, role);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 }
 
-export function useUpdateService() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      request,
-    }: {
-      id: bigint;
-      request: UpdateServiceRequest;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateService(id, request);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
-  });
-}
-
-export function useDeleteService() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (request: DeleteServiceRequest) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteService(request);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
-  });
-}
-
-export function useBookService() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (request: BookServiceRequest) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.bookService(request);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
-  });
-}
-
-// Stripe Checkout
-export function useCreateCheckoutSession() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (items: ShoppingItem[]): Promise<{ id: string; url: string }> => {
-      if (!actor) throw new Error('Actor not available');
-      const baseUrl = `${window.location.protocol}//${window.location.host}`;
-      const successUrl = `${baseUrl}/payment-success`;
-      const cancelUrl = `${baseUrl}/payment-failure`;
-      const result = await actor.createCheckoutSession(items, successUrl, cancelUrl);
-      const session = JSON.parse(result) as { id: string; url: string };
-      if (!session?.url) {
-        throw new Error('Stripe session missing url');
-      }
-      return session;
-    },
-  });
-}
-
-// Store Configuration
+// Store Config
 export function useGetStoreProductConfig() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<StoreProductConfig>({
     queryKey: ['storeConfig'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
@@ -644,25 +495,15 @@ export function useUpdateStoreProductConfig() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (config: {
-      inventoryThreshold: bigint;
-      freeShippingAmount: bigint;
-      taxRate: bigint;
-      categoryLimit: bigint;
-      returnDays: bigint;
-      pricingRules: PricingRule;
-      productCategories: string[];
-      productTags: string[];
-      featuredProducts: string[];
-      productStatuses: string[];
-    }) => {
+    mutationFn: async (config: any) => {
       if (!actor) throw new Error('Actor not available');
       return actor.updateStoreProductConfig(
-        config.inventoryThreshold,
-        config.freeShippingAmount,
-        config.taxRate,
-        config.categoryLimit,
-        config.returnDays,
+        BigInt(config.inventoryThreshold),
+        BigInt(config.freeShippingAmount),
+        BigInt(config.taxRate),
+        BigInt(config.categoryLimit),
+        BigInt(config.returnDays),
+        config.filterOptions,
         config.pricingRules,
         config.productCategories,
         config.productTags,
@@ -681,9 +522,9 @@ export function useSetRequireApprovalFor() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (config: { jobs: boolean; products: boolean; gigs: boolean }) => {
+    mutationFn: async ({ jobs, products, gigs }: { jobs: boolean; products: boolean; gigs: boolean }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setRequireApprovalFor(config.jobs, config.products, config.gigs);
+      return actor.setRequireApprovalFor(jobs, products, gigs);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['storeConfig'] });
@@ -691,15 +532,15 @@ export function useSetRequireApprovalFor() {
   });
 }
 
-// Stripe Store Configuration
-export function useIsStripeConfigured() {
+// Stripe
+export function useGetStripeStoreConfig() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['stripeConfigured'],
+  return useQuery<StripeStoreConfig>({
+    queryKey: ['stripeConfig'],
     queryFn: async () => {
-      if (!actor) return false;
-      return actor.isStripeConfigured();
+      if (!actor) throw new Error('Actor not available');
+      return actor.getStripeStoreConfig();
     },
     enabled: !!actor && !isFetching,
   });
@@ -715,65 +556,298 @@ export function useSetStripeStoreConfig() {
       return actor.setStripeStoreConfig(config);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stripeConfigured'] });
+      queryClient.invalidateQueries({ queryKey: ['stripeConfig'] });
     },
   });
 }
 
-export function useGetStripeStoreConfig() {
-  const { actor, isFetching } = useActor();
+export function useSetStripeConfiguration() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ['stripeStoreConfig'],
-    queryFn: async () => {
+  return useMutation({
+    mutationFn: async (config: StripeConfiguration) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getStripeStoreConfig();
+      return actor.setStripeConfiguration(config);
     },
-    enabled: !!actor && !isFetching,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stripeConfig'] });
+    },
   });
 }
 
-// Authorization
-export function useIsCallerAdmin() {
+export function useIsStripeConfigured() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['isCallerAdmin'],
+  return useQuery<boolean>({
+    queryKey: ['isStripeConfigured'],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      return actor.isStripeConfigured();
     },
     enabled: !!actor && !isFetching,
-    retry: false,
   });
 }
 
-export function useAssignUserRole() {
+export type CheckoutSession = {
+  id: string;
+  url: string;
+};
+
+export function useCreateCheckoutSession() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      items,
+      successUrl,
+      cancelUrl,
+    }: {
+      items: ShoppingItem[];
+      successUrl: string;
+      cancelUrl: string;
+    }): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const result = await actor.createCheckoutSession(items, successUrl, cancelUrl);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
+export function useCheckoutProduct() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      successUrl,
+      cancelUrl,
+    }: {
+      productId: string;
+      successUrl: string;
+      cancelUrl: string;
+    }): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const result = await actor.checkoutAndPayProduct(productId, successUrl, cancelUrl);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
+export function useCheckoutGig() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      gigId,
+      successUrl,
+      cancelUrl,
+    }: {
+      gigId: string;
+      successUrl: string;
+      cancelUrl: string;
+    }): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const gigs = await actor.getAllGigs();
+      const gig = gigs.find((g) => g.id === gigId);
+      if (!gig) throw new Error('Gig not found');
+
+      const item: ShoppingItem = {
+        currency: 'USD',
+        productName: gig.title,
+        productDescription: gig.description,
+        priceInCents: gig.pricing,
+        quantity: BigInt(1),
+      };
+
+      const result = await actor.createCheckoutSession([item], successUrl, cancelUrl);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
+export function useCheckoutMusic() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      musicId,
+      successUrl,
+      cancelUrl,
+    }: {
+      musicId: string;
+      successUrl: string;
+      cancelUrl: string;
+    }): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const music = await actor.getMusicById(musicId);
+      if (!music) throw new Error('Music not found');
+
+      const item: ShoppingItem = {
+        currency: 'USD',
+        productName: music.title,
+        productDescription: music.description,
+        priceInCents: music.price,
+        quantity: BigInt(1),
+      };
+
+      const result = await actor.createCheckoutSession([item], successUrl, cancelUrl);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
+export function useDonateToArtist() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      artistId,
+      amount,
+      successUrl,
+      cancelUrl,
+    }: {
+      artistId: string;
+      amount: number;
+      successUrl: string;
+      cancelUrl: string;
+    }): Promise<CheckoutSession> => {
+      if (!actor) throw new Error('Actor not available');
+      const artistPrincipal = Principal.fromText(artistId);
+      const result = await actor.donateToArtist(artistPrincipal, BigInt(amount), successUrl, cancelUrl);
+      const session = JSON.parse(result) as CheckoutSession;
+      if (!session?.url) {
+        throw new Error('Stripe session missing url');
+      }
+      return session;
+    },
+  });
+}
+
+// Revenue
+export function useGetArtistRevenue(artistId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ArtistRevenue>({
+    queryKey: ['artistRevenue', artistId],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const artistPrincipal = Principal.fromText(artistId);
+      return actor.getArtistRevenue(artistPrincipal);
+    },
+    enabled: !!actor && !isFetching && !!artistId,
+  });
+}
+
+export function useGetPaymentTransactionHistory(artistId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PaymentTransaction[]>({
+    queryKey: ['paymentTransactions', artistId],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const artistPrincipal = Principal.fromText(artistId);
+      return actor.getPaymentTransactionHistory(artistPrincipal);
+    },
+    enabled: !!actor && !isFetching && !!artistId,
+  });
+}
+
+export function useGetPlatformRevenueMetrics() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PlatformRevenueMetrics>({
+    queryKey: ['platformRevenueMetrics'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getPlatformRevenueMetrics();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllArtistRevenues() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ArtistRevenue[]>({
+    queryKey: ['allArtistRevenues'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAllArtistRevenues();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllPaymentTransactions() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PaymentTransaction[]>({
+    queryKey: ['allPaymentTransactions'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAllPaymentTransactions();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSetPlatformCommissionRate() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ user, role }: { user: Principal; role: UserRole }) => {
+    mutationFn: async (commissionPercentage: number) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.assignCallerUserRole(user, role);
+      return actor.setPlatformCommissionRate(BigInt(commissionPercentage));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['storeConfig'] });
     },
   });
 }
 
-export function useGrantAdminPrivileges() {
+// Site Branding
+export function useGetSiteBranding() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<SiteBranding>({
+    queryKey: ['siteBranding'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getSiteBranding();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateSiteBranding() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (branding: SiteBranding) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.grantAdminPrivileges();
+      return actor.updateSiteBranding(branding);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['siteBranding'] });
     },
   });
 }
